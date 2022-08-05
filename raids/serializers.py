@@ -82,7 +82,7 @@ class RaiderSerializer(serializers.ModelSerializer):
     joinTimestamp = serializers.IntegerField()
     alts = AltSerializer(many=True, read_only=True)
     experience = serializers.SerializerMethodField()
-    #totalRaids = serializers.SerializerMethodField()
+    totalRaids = serializers.SerializerMethodField()
 
     def validate_name(self, value):
         if not Utils.isValidCharacterName(value):
@@ -101,10 +101,12 @@ class RaiderSerializer(serializers.ModelSerializer):
     def get_experience(self, raider):
         return Utils.calculate_experience_for_raider(raider)
 
+    def get_totalRaids(self, raider):
+        return Utils.count_total_raids_for_raider(raider)
 
     class Meta:
         model = Raider
-        fields = ['id', 'name', 'joinTimestamp', 'alts', 'experience']
+        fields = ['id', 'name', 'joinTimestamp', 'alts', 'experience', 'totalRaids']
 
     def create(self, validated_data):
         return Raider.objects.create(**validated_data)

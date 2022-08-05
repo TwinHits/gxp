@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from django.db.models import Sum
 
-from raids.models import ExperienceGain, Raider
+from raids.models import ExperienceGain, Raid, Raider
 
 class Utils:
     def generateUUID():
@@ -39,3 +39,8 @@ class Utils:
             return 0
         else:
             return result
+
+
+    def count_total_raids_for_raider(raider):
+        result = Raid.objects.filter(raiders=raider.id).count()
+        return result
