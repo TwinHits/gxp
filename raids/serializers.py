@@ -13,7 +13,7 @@ class RaidSerializer(serializers.ModelSerializer):
         return value / 1000
 
     def validate_warcraftLogsId(self, value):
-        if value.isspace():
+        if not value.isspace():
             if not Utils.isValidWacraftLogsId(value):
                 raise serializers.ValidationError(ValidationErrors.INVALID_WARCRAFT_LOGS_ID)
 
