@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from gxp.quickstart.views import UserViewSet, GroupViewSet
-from raids.views import AltsViewSet, ExperienceEventsViewSet, RaidersViewSet, RaidsViewSet
+from raids.views import AltsViewSet, ExperienceEventsViewSet, RaidersViewSet, RaidsViewSet, ExperienceGainViewSet
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -10,6 +10,7 @@ router.register(r'groups', GroupViewSet)
 router.register(r'raids', RaidsViewSet)
 router.register(r'raiders', RaidersViewSet)
 router.register(r'experienceEvents', ExperienceEventsViewSet)
+router.register(r'experienceGains', ExperienceGainViewSet)
 router.register(r'alts', AltsViewSet)
 
 # Wire up our API using automatic URL routing.

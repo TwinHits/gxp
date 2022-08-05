@@ -21,6 +21,14 @@ class Raider(models.Model):
     class Meta:
         db_table = "gxp_raiders"
 
+class Alt(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=12, blank=False)
+    raiderId = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='alts')
+
+    class Meta:
+        db_table = "gxp_alts"
+
 
 class ExperienceEvent(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -31,10 +39,11 @@ class ExperienceEvent(models.Model):
         db_table = "gxp_experience_events"
 
 
-class Alt(models.Model):
+class ExperienceGain(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=12, blank=False)
-    raiderId = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='alts')
+    experienceEventId = models.ForeignKey('ExperienceEvent', on_delete=models.CASCADE, related_name="experienceGains")
+    raiderId = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name="experienceGains")
+    timestamp = models.IntegerField()
 
     class Meta:
-        db_table = "gxp_alts"
+        db_table = "gxp_experience_gains"

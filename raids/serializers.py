@@ -1,8 +1,6 @@
-from email.policy import default
-from string import whitespace
 from rest_framework import serializers
 from raids.constants import ValidationErrors
-from raids.models import Alt, ExperienceEvent, Raid, Raider
+from raids.models import Alt, ExperienceEvent, Raid, Raider, ExperienceGain
 from raids.utils import Utils 
 
 class RaidSerializer(serializers.ModelSerializer):
@@ -83,6 +81,8 @@ class RaiderSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     joinTimestamp = serializers.IntegerField()
     alts = AltSerializer(many=True, read_only=True)
+    experience = serializers.SerializerMethodField()
+    #totalRaids = serializers.SerializerMethodField()
 
     def validate_name(self, value):
         if not Utils.isValidCharacterName(value):
@@ -97,9 +97,14 @@ class RaiderSerializer(serializers.ModelSerializer):
     def validate_joinTimestamp(self, value):
         return value / 1000 
 
+        
+    def get_experience(self, raider):
+        return Utils.calculate_experience_for_raider(raider)
+
+
     class Meta:
         model = Raider
-        fields = ['id', 'name', 'joinTimestamp', 'alts']
+        fields = ['id', 'name', 'joinTimestamp', 'alts', 'experience']
 
     def create(self, validated_data):
         return Raider.objects.create(**validated_data)
@@ -125,6 +130,29 @@ class ExperienceEventSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.description = validated_data.get('description', instance.description)
         instance.value = validated_data.get('value', instance.value)
+
+        instance.save()
+        return instance
+
+
+class ExperienceGainSerializer(serializers.ModelSerializer):
+    experienceEventId = serializers.PrimaryKeyRelatedField(queryset=ExperienceEvent.objects.all())
+    raiderId = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
+    timestamp = serializers.IntegerField()
+
+    def validate_timestamp(self, value):
+        return value / 1000
+
+    class Meta:
+        model = ExperienceGain
+        fields = ['id', 'experienceEventId', 'raiderId', 'timestamp']
+
+    def create(self, validated_data):
+        return ExperienceGain.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.experienceEventId = validated_data.get('experienceEventId', instance.experienceEventId)
+        instance.raiderId = validated_data.get('raiderId', instance.raiderId)
 
         instance.save()
         return instance

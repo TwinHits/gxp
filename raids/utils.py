@@ -1,6 +1,9 @@
-from datetime import date, datetime
-from string import whitespace
+from datetime import datetime
 from uuid import UUID, uuid4
+
+from django.db.models import Sum
+
+from raids.models import ExperienceGain, Raider
 
 class Utils:
     def generateUUID():
@@ -27,3 +30,12 @@ class Utils:
         notOptionalDays = [1, 3]
         raidDate = datetime.fromtimestamp(raid["timestamp"])
         return raidDate.weekday() in notOptionalDays
+
+
+    def calculate_experience_for_raider(raider):
+        result = ExperienceGain.objects.filter(raiderId=raider.id).aggregate(Sum('experienceEventId__value'))
+        result = result["experienceEventId__value__sum"]
+        if not result:
+            return 0
+        else:
+            return result
