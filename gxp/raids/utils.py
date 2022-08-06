@@ -3,7 +3,8 @@ from uuid import UUID, uuid4
 
 from django.db.models import Sum
 
-from raids.models import ExperienceGain, Raid, Raider
+from gxp.raids.models import Raid
+from gxp.experience.models import ExperienceGain 
 
 class Utils:
     def generateUUID():
