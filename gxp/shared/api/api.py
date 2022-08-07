@@ -3,12 +3,14 @@ import requests
 class Api:
     session = requests.session()
     
-    def get(url, headers=headers):
+    def get(url, headers=None):
         response = requests.get(url, headers=headers);
         body = response.json()
         return response
 
-    def post(url, body):
-        response = requests.post(url, body, headers=headers);
-        body = response.json()
-        return response
+    def post(url, data=None, headers=None, json=None):
+        response = requests.post(url, data=data, headers=headers, json=json);
+        if response.status_code == requests.codes.ok:
+            return response.json()
+        else:
+            print(response.status_code)

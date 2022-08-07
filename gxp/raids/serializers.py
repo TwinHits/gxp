@@ -4,9 +4,10 @@ from gxp.raids.models import Raid
 from gxp.raiders.models import Raider
 from gxp.raids.utils import Utils 
 
+from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
+
 class RaidSerializer(serializers.ModelSerializer):
     timestamp = serializers.IntegerField()
-    raiders = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all(), many=True)
     warcraftLogsId = serializers.CharField(required=False, allow_blank=True, default="")
     optional = serializers.BooleanField(required=False)
 
@@ -26,20 +27,33 @@ class RaidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Raid
-        fields = ['id', 'zone', 'warcraftLogsId', 'timestamp', 'optional', 'raiders']
+        fields = ['id', 'zone', 'warcraftLogsId', 'timestamp', 'optional']
 
     def create(self, validated_data):
 
-        if 'optional' not in validated_data:
-            validated_data["optional"] = Utils.isRaidOptional(validated_data)
+            if 'optional' not in validated_data:
+                validated_data["optional"] = Utils.isRaidOptional(validated_data)
 
-        raiders = validated_data.get("raiders")
-        del validated_data["raiders"]
-        raid = Raid.objects.create(**validated_data)
-        for raider in raiders:
-            raid.raiders.add(raider)
+            if 'warcraftLogsId' in validated_data and validated_data["warcraftLogsId"]:
+                try:
+                    report = WarcraftLogsInterface.get_raid_by_report_id(validated_data["warcraftLogsId"])
+                    
+                except Exception as err:
+                    raise serializers.ValidationError(err)
 
-        return raid
+            """
+            raiders = validated_data.get("raiders")
+            del validated_data["raiders"]
+            raid = Raid.objects.create(**validated_data)
+            for raider in raiders:
+                raid.raiders.add(raider)
+            """
+
+            #raid = Raid.objects.create(**validated_data)
+            return raid
+        except Exception as err:
+            raise serializers.ValidationError(err)
+
 
     def update(self, instance, validated_data):
         instance.zone = validated_data.get('zone', instance.zone)
