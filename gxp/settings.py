@@ -10,11 +10,19 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Environment Variables
+# Warcraft Logs
+WARCRAFT_LOGS_CLIENT_ID = config("WARCRAFT_LOGS_CLIENT_ID")
+WARCRAFT_LOGS_CLIENT_SECRET = config("WARCRAFT_LOGS_CLIENT_SECRET") 
+WARCRAFT_LOGS_BASE_URL = config("WARCRAFT_LOGS_BASE_URL")
+WARCRAFT_LOGS_AUTHORIZE_ENDPOINT = config("WARCRAFT_LOGS_AUTHORIZE_ENDPOINT")
+WARCRAFT_LOGS_TOKEN_ENDPOINT = config("WARCRAFT_LOGS_TOKEN_ENDPOINT")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
