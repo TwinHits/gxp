@@ -5,6 +5,7 @@ import json
 
 from gxp.shared.api.api import Api
 from gxp.shared.warcraftLogs.queries import Queries
+from gxp.shared.warcraftLogs.utils import WarcraftLogsUtils
 
 class WarcraftLogsInterface:
 
@@ -16,15 +17,6 @@ class WarcraftLogsInterface:
     token_url = base_url + settings.WARCRAFT_LOGS_TOKEN_ENDPOINT
     endpoint = base_url + "/api/v2/client"
 
-
-    @staticmethod
-    def get_message_from_errors(dict):
-        message = ""
-        errors = dict.get("errors") 
-        for error in errors:
-            message += error.get("message") + " "
-        return message
-        
 
     @staticmethod
     def authenticate():
@@ -54,7 +46,7 @@ class WarcraftLogsInterface:
         })
 
         if response.get("errors"):
-            raise Exception(WarcraftLogsInterface.get_message_from_errors(response))
+            raise Exception(WarcraftLogsUtils.get_message_from_errors(response))
 
 
     @staticmethod
@@ -73,5 +65,7 @@ class WarcraftLogsInterface:
         })
 
         if response.get("errors"):
-            raise Exception(WarcraftLogsInterface.get_message_from_errors(response))
+            raise Exception(WarcraftLogsUtils.get_message_from_errors(response))
+
+        return response.get("data").get("reportData").get("report")
 

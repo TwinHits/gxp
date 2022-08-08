@@ -1,22 +1,20 @@
 from rest_framework import serializers
 from gxp.raids.constants import ValidationErrors
 from gxp.raids.models import Raid
+from gxp.raids.utils import RaidUtils 
 from gxp.raiders.models import Raider
-from gxp.raids.utils import Utils 
 
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
+from gxp.shared.warcraftLogs.utils import WarcraftLogsUtils
 
 class RaidSerializer(serializers.ModelSerializer):
-    timestamp = serializers.IntegerField()
     warcraftLogsId = serializers.CharField(required=False, allow_blank=True, default="")
     optional = serializers.BooleanField(required=False)
-
-    def validate_timestamp(self, value):
-        return value / 1000
+    raiders = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all(), required=False, many=True)
 
     def validate_warcraftLogsId(self, value):
         if not value.isspace():
-            if not Utils.isValidWacraftLogsId(value):
+            if not WarcraftLogsUtils.is_valid_warcraft_logs_id(value):
                 raise serializers.ValidationError(ValidationErrors.INVALID_WARCRAFT_LOGS_ID)
 
             existingRaid = Raid.objects.filter(warcraftLogsId=value)
@@ -27,32 +25,29 @@ class RaidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Raid
-        fields = ['id', 'zone', 'warcraftLogsId', 'timestamp', 'optional']
+        fields = ['id', 'warcraftLogsId', 'optional', 'raiders']
 
     def create(self, validated_data):
 
-            if 'optional' not in validated_data:
-                validated_data["optional"] = Utils.isRaidOptional(validated_data)
+        raiders = []
+        if 'warcraftLogsId' in validated_data and validated_data["warcraftLogsId"]:
+            try:
+                raid_report = WarcraftLogsInterface.get_raid_by_report_id(validated_data["warcraftLogsId"])
+                validated_data["timestamp"] = WarcraftLogsUtils.get_start_timestamp_from_report(raid_report)
+            except Exception as err:
+                raise serializers.ValidationError(err)
 
-            if 'warcraftLogsId' in validated_data and validated_data["warcraftLogsId"]:
-                try:
-                    report = WarcraftLogsInterface.get_raid_by_report_id(validated_data["warcraftLogsId"])
-                    
-                except Exception as err:
-                    raise serializers.ValidationError(err)
+            validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
+            raiders = WarcraftLogsUtils.get_raiders_from_report(raid_report)
 
-            """
-            raiders = validated_data.get("raiders")
-            del validated_data["raiders"]
-            raid = Raid.objects.create(**validated_data)
-            for raider in raiders:
-                raid.raiders.add(raider)
-            """
+        if 'optional' not in validated_data:
+            validated_data["optional"] = RaidUtils.is_raid_optional(validated_data.get("timestamp"))
 
-            #raid = Raid.objects.create(**validated_data)
-            return raid
-        except Exception as err:
-            raise serializers.ValidationError(err)
+        raid = Raid.objects.create(**validated_data)
+        for raider in raiders:
+            raid.raiders.add(raider)
+
+        return raid
 
 
     def update(self, instance, validated_data):

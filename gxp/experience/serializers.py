@@ -27,9 +27,6 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
     raiderId = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
     timestamp = serializers.IntegerField()
 
-    def validate_timestamp(self, value):
-        return value / 1000
-
     class Meta:
         model = ExperienceGain
         fields = ['id', 'experienceEventId', 'raiderId', 'timestamp']
