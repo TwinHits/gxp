@@ -1,9 +1,10 @@
 from rest_framework import serializers
+
+from gxp.experience.utils import ExperienceUtils
 from gxp.raids.constants import ValidationErrors
 from gxp.raids.models import Raid
 from gxp.raids.utils import RaidUtils 
 from gxp.raiders.models import Raider
-
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
 from gxp.shared.warcraftLogs.utils import WarcraftLogsUtils
 
@@ -38,7 +39,7 @@ class RaidSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(err)
 
             validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
-            raiders = WarcraftLogsUtils.get_raiders_from_report(raid_report)
+            raiders = WarcraftLogsUtils.get_or_create_raiders_from_report(raid_report)
 
         if 'optional' not in validated_data:
             validated_data["optional"] = RaidUtils.is_raid_optional(validated_data.get("timestamp"))
@@ -46,6 +47,8 @@ class RaidSerializer(serializers.ModelSerializer):
         raid = Raid.objects.create(**validated_data)
         for raider in raiders:
             raid.raiders.add(raider)
+
+        ExperienceUtils.generate_experience_gains_for_raid(raid)
 
         return raid
 

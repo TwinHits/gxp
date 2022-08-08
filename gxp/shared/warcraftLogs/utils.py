@@ -23,7 +23,7 @@ class WarcraftLogsUtils:
         return report.get("zone").get("name")
         
 
-    def get_raiders_from_report(report):
+    def get_or_create_raiders_from_report(report):
         raiders = []
         for character in report.get("rankedCharacters"):
             name = character.get("name")
