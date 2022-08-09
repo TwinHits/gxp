@@ -31,13 +31,11 @@ class WarcraftLogsInterface:
 
 
     @staticmethod
-    def get_raids_for_guild():
+    def __post_grapql_query(query, variables):
         auth = WarcraftLogsInterface.authenticate()
         body = {
-            "query": Queries.GET_RAIDS_BY_GUILD_ID,
-            "variables":  { 
-                "page": 0
-            }
+            "query": query,
+            "variables": variables,
         };
 
         response = Api.post(WarcraftLogsInterface.endpoint, json=body, headers={
@@ -47,25 +45,24 @@ class WarcraftLogsInterface:
 
         if response.get("errors"):
             raise Exception(WarcraftLogsUtils.get_message_from_errors(response))
+
+        return response
+
+
+    @staticmethod
+    def get_raids_for_guild():
+        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAIDS_BY_GUILD_ID, { "page": 0 })
+        return response.get("data").get("guildData").get("guild")
 
 
     @staticmethod
     def get_raid_by_report_id(reportId):
-        auth = WarcraftLogsInterface.authenticate()
-        body = {
-            "query": Queries.GET_RAID_BY_REPORT_ID,
-            "variables":  { 
-                "code": reportId
-            }
-        };
+        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAID_BY_REPORT_ID, { "code": reportId })
+        return response.get("data").get("reportData").get("report")
 
-        response = Api.post(WarcraftLogsInterface.endpoint, json=body, headers={
-            "Authorization": f'Bearer {auth.get("access_token")}',
-            'Content-Type': 'application/json',
-        })
 
-        if response.get("errors"):
-            raise Exception(WarcraftLogsUtils.get_message_from_errors(response))
-
+    @staticmethod
+    def get_raid_kills_by_report_id(reportId):
+        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAID_KILLS_BY_REPORT_ID, { "code": reportId })
         return response.get("data").get("reportData").get("report")
 

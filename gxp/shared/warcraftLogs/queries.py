@@ -49,3 +49,24 @@ class Queries:
             }
         }
     }"""
+
+    GET_RAID_KILLS_BY_REPORT_ID = """query ($code: String) {
+        reportData {
+            report(code: $code) {
+                startTime,
+                zone {
+                    name
+                },
+                fights(killType:Kills) {
+                    friendlyPlayers,
+                    name
+                },
+                masterData {
+                    actors(type:"Player") {
+                        id,
+                        name
+                    }
+                }
+            }
+        }
+    }"""
