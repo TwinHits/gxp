@@ -1,7 +1,7 @@
 from django.db.models import Sum
 
 from gxp.experience.models import ExperienceGain
-from gxp.raiders.models import Raider
+from gxp.raids.models import Raid
 
 class RaiderUtils:
     def is_valid_character_name(name):
@@ -15,3 +15,9 @@ class RaiderUtils:
             return 0
         else:
             return result
+
+
+    def count_total_raids_for_raider(raider):
+        result = Raid.objects.filter(raiders=raider.id).count()
+        return result
+

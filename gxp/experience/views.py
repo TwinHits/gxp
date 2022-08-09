@@ -13,6 +13,14 @@ class ExperienceGainsViewSet(viewsets.ModelViewSet):
     queryset = ExperienceGain.objects.all()
     serializer_class = ExperienceGainSerializer
 
+    def get_queryset(self):
+        raiderId = self.request.query_params.get('raiderId')
+
+        if raiderId:
+            self.queryset = self.queryset.filter(raiderId=raiderId)
+
+        return self.queryset
+
 class ExperienceLevelsViewSet(viewsets.ModelViewSet):
     queryset = ExperienceLevel.objects.all()
     serializer_class = ExperienceLevelSerializer

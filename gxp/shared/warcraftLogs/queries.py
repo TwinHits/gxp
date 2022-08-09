@@ -53,9 +53,11 @@ class Queries:
     GET_RAID_KILLS_BY_REPORT_ID = """query ($code: String) {
         reportData {
             report(code: $code) {
+				startTime,
                 fights(killType:Kills) {
                     friendlyPlayers,
-                    name
+                    name,
+					endTime
                 },
                 masterData {
                     actors(type:"Player") {

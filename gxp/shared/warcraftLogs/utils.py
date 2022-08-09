@@ -1,4 +1,3 @@
-from tkinter import W
 from gxp.raiders.models import Alt, Raider
 from gxp.raiders.serializers import RaiderSerializer
 

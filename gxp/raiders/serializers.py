@@ -3,7 +3,6 @@ from rest_framework import serializers
 from gxp.raiders.models import Alt, Raider
 
 from gxp.raids.constants import ValidationErrors
-from gxp.raids.utils import RaidUtils 
 from gxp.raiders.utils import RaiderUtils 
 from gxp.shared.utils import SharedUtils 
 
@@ -57,7 +56,7 @@ class RaiderSerializer(serializers.ModelSerializer):
         return RaiderUtils.calculate_experience_for_raider(raider)
 
     def get_totalRaids(self, raider):
-        return RaidUtils.count_total_raids_for_raider(raider)
+        return RaiderUtils.count_total_raids_for_raider(raider)
 
     class Meta:
         model = Raider

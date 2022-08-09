@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from gxp.experience.utils import ExperienceUtils
 from gxp.raids.constants import ValidationErrors
 from gxp.raids.models import Raid
 from gxp.raids.utils import RaidUtils 
@@ -48,7 +47,7 @@ class RaidSerializer(serializers.ModelSerializer):
         for raider in raiders:
             raid.raiders.add(raider)
 
-        ExperienceUtils.generate_experience_gains_for_raid(raid)
+        RaidUtils.generate_experience_gains_for_raid(raid)
 
         return raid
 
