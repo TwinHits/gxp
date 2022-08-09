@@ -5,17 +5,16 @@ from gxp.shared.utils import SharedUtils
 
 
 class ExperienceEventSerializer(serializers.ModelSerializer):
-    description = serializers.CharField()
-    value = serializers.IntegerField()
 
     class Meta:
         model = ExperienceEvent
-        fields = ['id', 'description', 'value']
+        fields = ['id', 'description', 'value', 'key']
 
     def create(self, validated_data):
         return ExperienceEvent.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
+        instance.key = validated_data.get('key', instance.key)
         instance.description = validated_data.get('description', instance.description)
         instance.value = validated_data.get('value', instance.value)
 

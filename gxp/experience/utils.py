@@ -1,3 +1,4 @@
+from gxp.experience.models import ExperienceEvent
 from gxp.raiders.models import Raider
 from gxp.experience.serializers import ExperienceGainSerializer
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
@@ -6,8 +7,8 @@ class ExperienceUtils:
     def generate_experience_gains_for_raid(raid):
 
         def boss_kill_and_complete_raid_experience(raid):
-            complete_raid_event_id = "e0ff8926-f79f-4fdd-bbfd-414d31756854"
-            boss_kill_event_id = "a1c0026b-f9eb-4d7a-aa3b-a78781a293f1"
+            complete_raid_event_id = ExperienceEvent.objects.get(key="COMPLETE_RAID").id
+            boss_kill_event_id = ExperienceEvent.objects.get(key="BOSS_KILL").id
 
             kill_logs = WarcraftLogsInterface.get_raid_kills_by_report_id(raid.warcraftLogsId)
 
