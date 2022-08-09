@@ -23,11 +23,12 @@ class ExperienceGain(models.Model):
     class Meta:
         db_table = "gxp_experience_gains"
 
-"""
+
 class ExperienceLevel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
+    experience_required = models.IntegerField()
 
     class Meta:
-        db_table = "gxp_experience_gains"
-"""
+        db_table = "gxp_experience_levels"
+        ordering = ["experience_required"]

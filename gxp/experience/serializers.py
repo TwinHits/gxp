@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from gxp.experience.models import ExperienceEvent, ExperienceGain
+from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
 from gxp.raiders.models import Raider
 from gxp.shared.utils import SharedUtils
 
@@ -52,3 +52,20 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
         })
         experience_gain_serializer.is_valid(raise_exception=True);
         experience_gain_serializer.save()
+
+
+class ExperienceLevelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ExperienceLevel
+        fields = ['id', 'name', 'experience_required']
+
+    def create(self, validated_data):
+        return ExperienceLevel.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.experience_required = validated_data.get('experience_required', instance.experience_required)
+
+        instance.save()
+        return instance

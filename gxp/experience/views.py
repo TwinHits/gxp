@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from gxp.experience.models import ExperienceEvent, ExperienceGain
-from gxp.experience.serializers import ExperienceEventSerializer, ExperienceGainSerializer
+from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
+from gxp.experience.serializers import ExperienceEventSerializer, ExperienceGainSerializer, ExperienceLevelSerializer
 
 
 class ExperienceEventsViewSet(viewsets.ModelViewSet):
@@ -12,3 +12,7 @@ class ExperienceEventsViewSet(viewsets.ModelViewSet):
 class ExperienceGainsViewSet(viewsets.ModelViewSet):
     queryset = ExperienceGain.objects.all()
     serializer_class = ExperienceGainSerializer
+
+class ExperienceLevelsViewSet(viewsets.ModelViewSet):
+    queryset = ExperienceLevel.objects.all()
+    serializer_class = ExperienceLevelSerializer
