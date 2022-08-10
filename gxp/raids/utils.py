@@ -26,11 +26,13 @@ class RaidUtils:
             kill_count_by_name = {}
 
             kills = kill_logs.get("fights") # array of fight name and player data ids
-            starttime = kill_logs.get("startTime")
+            raid_start_timestamp = kill_logs.get("startTime")
+            raid_end_timestamp = kill_logs.get("endTime")
             for kill in kills:
+                kill_timestamp = raid_start_timestamp + kill.get("endTime")
                 tokens = {
                     "encounter": kill.get("name"),
-                    "timestamp": starttime + kill.get("endTime") # endtime is ms since report started
+                    "kill_timestamp": kill_timestamp # endtime is ms since report started
                 }
                 for data_id in kill.get("friendlyPlayers"):
                     name = players_by_data_id[data_id]
@@ -42,13 +44,12 @@ class RaidUtils:
             for name, participating_kills in kill_count_by_name.items():
                 raider = Raider.objects.get(name=name)
                 for tokens in reversed(participating_kills):
-                    ExperienceGainSerializer.create_experience_gain(boss_kill_event_id, raider.id, tokens=tokens)
+                    ExperienceGainSerializer.create_experience_gain(boss_kill_event_id, raider.id, timestamp=tokens.get("kill_timestamp"), tokens=tokens)
                 if len(participating_kills) >= number_of_kills:
                     complete_raid_tokens = {
                         "zone": raid.zone,
-                        "timestamp": raid.timestamp,
                     }
-                    ExperienceGainSerializer.create_experience_gain(complete_raid_event_id, raider.id, tokens=complete_raid_tokens)
+                    ExperienceGainSerializer.create_experience_gain(complete_raid_event_id, raider.id, timestamp=raid_end_timestamp, tokens=complete_raid_tokens)
 
         def flask_and_consumes_raid_experience(raid):
             food_on_event_id = ExperienceEvent.objects.get(key="BOSS_KILL_FOOD").id
@@ -68,29 +69,39 @@ class RaidUtils:
                     if len(result):
                         name = result.get("name")
                         id = result.get("id")
-                        encounter_by_fight_id[id] = name
+                        encounter_by_fight_id[id] = {
+                            "name": name,
+                            "timestamp": raid.timestamp + result.get("end")
+                        }
 
             # check if raider has flasks and consumes for each kill
             consumes_data = consumes_report.get("data")
             for consumes in consumes_data:
-                encounter_name = encounter_by_fight_id.get(consumes.get("fight"))
-                if encounter_name: # only for fight ids we want want from above
+                encounter = encounter_by_fight_id.get(consumes.get("fight"))
+                if encounter: # only for fight ids we want want from above
                     for data in consumes.get("data"):
                         raider_name = data.get("actor").get("name")
                         raider = Raider.objects.get(name=raider_name)
                         food = len(data.get("buffs").get("food"))
                         flask = len(data.get("buffs").get("flask"))
 
-                        tokens = { "encounter": encounter_name }
-                        if food: 
-                            ExperienceGainSerializer.create_experience_gain(food_on_event_id, raider.id, tokens=tokens)
-                        else:
-                            ExperienceGainSerializer.create_experience_gain(food_off_event_id, raider.id, tokens=tokens)
-
+                        tokens = { "encounter": encounter.get("name") }
+                        
+                        flask_timestamp = encounter.get("timestamp") + 1 # Offset time a bit for nice history ordering
                         if flask:
-                            ExperienceGainSerializer.create_experience_gain(flask_on_event_id, raider.id, tokens=tokens)
+                            ExperienceGainSerializer.create_experience_gain(flask_on_event_id, raider.id, timestamp=flask_timestamp, tokens=tokens)
                         else:
-                            ExperienceGainSerializer.create_experience_gain(flask_off_event_id, raider.id, tokens=tokens)
+                            ExperienceGainSerializer.create_experience_gain(flask_off_event_id, raider.id, timestamp=flask_timestamp, tokens=tokens)
 
-        boss_kill_and_complete_raid_experience(raid)
-        flask_and_consumes_raid_experience(raid)
+                        food_timestamp = encounter.get("timestamp") + 2
+                        if food: 
+                            ExperienceGainSerializer.create_experience_gain(food_on_event_id, raider.id, timestamp=food_timestamp,tokens=tokens)
+                        else:
+                            ExperienceGainSerializer.create_experience_gain(food_off_event_id, raider.id, timestamp=food_timestamp, tokens=tokens)
+
+
+        try:
+            boss_kill_and_complete_raid_experience(raid)
+            flask_and_consumes_raid_experience(raid)
+        except Exception as err:
+            print(err)

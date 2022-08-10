@@ -29,6 +29,7 @@ class Queries:
         reportData {
             report(code: $code) {
                 startTime,
+                endTime,
                 zone {
                     name
                 },
@@ -54,6 +55,7 @@ class Queries:
         reportData {
             report(code: $code) {
 				startTime,
+                endTime,
                 fights(killType:Kills) {
                     friendlyPlayers,
                     name,
