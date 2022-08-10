@@ -6,7 +6,7 @@ class Api:
     def get(url, headers=None):
         response = requests.get(url, headers=headers);
         body = response.json()
-        return response
+        return body
 
     def post(url, data=None, headers=None, json=None):
         response = requests.post(url, data=data, headers=headers, json=json);
