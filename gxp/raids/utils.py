@@ -10,7 +10,7 @@ class RaidUtils:
     def is_raid_optional(timestamp):
         notOptionalDays = [1, 3]
         raidDate = datetime.fromtimestamp(timestamp / 1000)
-        return raidDate.weekday() in notOptionalDays
+        return raidDate.weekday() not in notOptionalDays
     
 
     def generate_experience_gains_for_raid(raid):
@@ -44,12 +44,12 @@ class RaidUtils:
             for name, participating_kills in kill_count_by_name.items():
                 raider = Raider.objects.get(name=name)
                 for tokens in reversed(participating_kills):
-                    ExperienceGainSerializer.create_experience_gain(boss_kill_event_id, raider.id, timestamp=tokens.get("kill_timestamp"), tokens=tokens)
+                    ExperienceGainSerializer.create_experience_gain(boss_kill_event_id, raider.id, raid_id=raid.id, timestamp=tokens.get("kill_timestamp"), tokens=tokens)
                 if len(participating_kills) >= number_of_kills:
                     complete_raid_tokens = {
                         "zone": raid.zone,
                     }
-                    ExperienceGainSerializer.create_experience_gain(complete_raid_event_id, raider.id, timestamp=raid_end_timestamp, tokens=complete_raid_tokens)
+                    ExperienceGainSerializer.create_experience_gain(complete_raid_event_id, raider.id, raid_id=raid.id, timestamp=raid_end_timestamp, tokens=complete_raid_tokens)
 
         def flask_and_consumes_raid_experience(raid):
             food_on_event_id = ExperienceEvent.objects.get(key="BOSS_KILL_FOOD").id
@@ -89,15 +89,15 @@ class RaidUtils:
                         
                         flask_timestamp = encounter.get("timestamp") + 1 # Offset time a bit for nice history ordering
                         if flask:
-                            ExperienceGainSerializer.create_experience_gain(flask_on_event_id, raider.id, timestamp=flask_timestamp, tokens=tokens)
+                            ExperienceGainSerializer.create_experience_gain(flask_on_event_id, raider.id, raid_id=raid.id, timestamp=flask_timestamp, tokens=tokens)
                         else:
-                            ExperienceGainSerializer.create_experience_gain(flask_off_event_id, raider.id, timestamp=flask_timestamp, tokens=tokens)
+                            ExperienceGainSerializer.create_experience_gain(flask_off_event_id, raider.id, raid_id=raid.id, timestamp=flask_timestamp, tokens=tokens)
 
                         food_timestamp = encounter.get("timestamp") + 2
                         if food: 
-                            ExperienceGainSerializer.create_experience_gain(food_on_event_id, raider.id, timestamp=food_timestamp,tokens=tokens)
+                            ExperienceGainSerializer.create_experience_gain(food_on_event_id, raider.id, raid_id=raid.id, timestamp=food_timestamp,tokens=tokens)
                         else:
-                            ExperienceGainSerializer.create_experience_gain(food_off_event_id, raider.id, timestamp=food_timestamp, tokens=tokens)
+                            ExperienceGainSerializer.create_experience_gain(food_off_event_id, raider.id, raid_id=raid.id, timestamp=food_timestamp, tokens=tokens)
 
 
         try:

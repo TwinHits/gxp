@@ -2,6 +2,7 @@ from statistics import mode
 import uuid
 from django.db import models
 
+from gxp.raids.models import Raid
 from gxp.raiders.models import Raider
 
 class ExperienceEvent(models.Model):
@@ -19,6 +20,7 @@ class ExperienceGain(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     experienceEventId = models.ForeignKey(ExperienceEvent, on_delete=models.CASCADE, related_name="experienceGains")
     raiderId = models.ForeignKey(Raider, on_delete=models.CASCADE, related_name="experienceGains")
+    raid = models.ForeignKey(Raid, on_delete=models.CASCADE, related_name="experienceGains", blank=True)
     timestamp = models.IntegerField()
     tokens = models.JSONField(default=dict)
 

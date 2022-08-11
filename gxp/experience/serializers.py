@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
+from gxp.raids.models import Raid
 from gxp.raiders.models import Raider
 from gxp.shared.utils import SharedUtils
 from gxp.experience.utils import ExperienceUtils
@@ -30,6 +31,7 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
     raiderId = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
     timestamp = serializers.IntegerField(required=False)
     tokens = serializers.JSONField(required=False)
+    raid = serializers.PrimaryKeyRelatedField(queryset=Raid.objects.all(), required=False)
     description = serializers.SerializerMethodField()
 
     def get_description(self, experience_gain):
@@ -38,7 +40,7 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperienceGain
-        fields = ['id', 'experienceEventId', 'raiderId', 'timestamp', 'tokens', 'description']
+        fields = ['id', 'experienceEventId', 'raiderId', 'timestamp', 'tokens', 'description', 'raid']
 
     def create(self, validated_data):
         if not validated_data.get("timestamp"):
@@ -54,11 +56,12 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
         return instance
 
     @staticmethod
-    def create_experience_gain(experience_event_id, raider_id, timestamp=None, tokens=None):
+    def create_experience_gain(experience_event_id, raider_id, raid_id=None, timestamp=None, tokens=None):
         data = {}
 
         data["experienceEventId"] = experience_event_id
         data["raiderId"] = raider_id
+        if raid_id: data["raid"] = raid_id
         if tokens: data["tokens"] = tokens
         if timestamp: data["timestamp"] = timestamp
 
