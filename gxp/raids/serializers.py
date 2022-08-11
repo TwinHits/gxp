@@ -1,3 +1,4 @@
+from sqlite3 import Timestamp
 from rest_framework import serializers
 
 from gxp.raids.constants import ValidationErrors
@@ -11,6 +12,7 @@ class RaidSerializer(serializers.ModelSerializer):
     warcraftLogsId = serializers.CharField(required=False, allow_blank=True, default="")
     optional = serializers.BooleanField(required=False)
     raiders = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all(), required=False, many=True)
+    timestamp = serializers.IntegerField(required=False)
 
     def validate_warcraftLogsId(self, value):
         if not value.isspace():
@@ -25,7 +27,7 @@ class RaidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Raid
-        fields = ['id', 'warcraftLogsId', 'optional', 'raiders']
+        fields = ['id', 'warcraftLogsId', 'optional', 'raiders', 'timestamp']
 
     def create(self, validated_data):
 

@@ -50,9 +50,16 @@ class WarcraftLogsInterface:
 
 
     @staticmethod
-    def get_raids_for_guild():
-        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAIDS_BY_GUILD_ID, { "page": 0 })
-        return response.get("data").get("guildData").get("guild")
+    def get_report_ids_for_guild():
+        report_ids = []
+        page = 1
+        has_more_pages = True
+        while has_more_pages:
+            response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_REPORTS_BY_GUILD, { "page": page })
+            report_ids.extend(response.get("data").get("guildData").get("guild").get("attendance").get("data"))
+            has_more_pages = response.get("data").get("guildData").get("guild").get("attendance").get("has_more_pages")
+            page += 1
+        return report_ids
 
 
     @staticmethod
@@ -65,4 +72,3 @@ class WarcraftLogsInterface:
     def get_raid_kills_by_report_id(reportId):
         response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAID_KILLS_BY_REPORT_ID, { "code": reportId })
         return response.get("data").get("reportData").get("report")
-
