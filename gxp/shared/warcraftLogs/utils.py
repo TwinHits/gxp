@@ -1,4 +1,4 @@
-from gxp.raiders.models import Alt, Raider
+from gxp.raiders.models import Raider
 from gxp.raiders.serializers import RaiderSerializer
 
 class WarcraftLogsUtils:
@@ -27,10 +27,6 @@ class WarcraftLogsUtils:
         for character in report.get("rankedCharacters"):
             name = character.get("name")
             raider = Raider.objects.filter(name=name).first()
-            if not raider:
-                isAlt = Alt.objects.filter(name=name).first()
-                if isAlt:
-                    raider = Raider.objects.get(pk=isAlt.id)
 
             if not raider:
                 raider = RaiderSerializer.create_raider(name) 

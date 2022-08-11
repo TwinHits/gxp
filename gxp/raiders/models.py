@@ -13,8 +13,8 @@ class Raider(models.Model):
 
 class Alt(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=12, blank=False)
-    raiderId = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='alts')
+    alt = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='main')
+    main = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='alts')
 
     class Meta:
         db_table = "gxp_alts"
