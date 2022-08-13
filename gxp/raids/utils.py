@@ -1,10 +1,14 @@
 from datetime import datetime
+import re
 
 from gxp.raiders.models import Raider
 from gxp.experience.models import ExperienceEvent
+
 from gxp.experience.serializers import ExperienceGainSerializer
+
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
 from gxp.shared.ironforgeAnalyzer.interface import IronforgeAnalyzerInterface
+from gxp.shared.raidHelper.interface import RaidHelperInterface
 
 class RaidUtils:
     def is_raid_optional(timestamp):
@@ -100,8 +104,31 @@ class RaidUtils:
                             ExperienceGainSerializer.create_experience_gain(food_off_event_id, raider.id, raid_id=raid.id, timestamp=food_timestamp, tokens=tokens)
 
 
+        def sign_ups_raid_experience(raid):
+            if raid.raidHelperEventId:
+                response = RaidHelperInterface.get_sign_ups_for_event_id(raid.raidHelperEventId)
+                sign_ups = response.get("signups")
+                """
+                {'role': 'Absence', 'name': 'Haydes', 'spec_emote': '612343589070045200', 'signuptime': 1659650593, 'position': 17, 
+                'role_emote': '612343589070045200', 'class_emote': '612343589070045200', 'userid': '519377783139467275', 
+                'class': 'Absence', 'spec': 'Absence', 'timestamp': '2022-08-05T00:03:13.638676', 'status': 'primary'} 
+                """
+                for sign_up in sign_ups:
+                    name = sign_up.get("name")
+                    sign_up_state = sign_up.get("class")
+                    signed_absent = sign_up_state == "Absence"
+                    signed_tentative = sign_up_state == "Tentative"
+                    signed_late = sign_up_state == "Late"
+
+                    pattern = re.compile('[^a-zA-Z0-9/]')
+                    name = pattern.sub('', name) 
+
+                    name_parts = name.split("/")
+
+
         try:
             boss_kill_and_complete_raid_experience(raid)
             flask_and_consumes_raid_experience(raid)
+            sign_ups_raid_experience(raid)
         except Exception as err:
             print(err)

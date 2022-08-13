@@ -1,7 +1,6 @@
 from django.conf import settings
 
 import base64
-import json
 
 from gxp.shared.api.api import Api
 from gxp.shared.warcraftLogs.queries import Queries

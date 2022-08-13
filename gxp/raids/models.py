@@ -10,6 +10,7 @@ class Raid(models.Model):
     warcraftLogsId = models.CharField(max_length=255, blank=True, default='')
     optional = models.BooleanField(default=True)
     raiders = models.ManyToManyField(Raider, related_name='raids', db_table="gxp_raids_raiders")
+    raidHelperEventId = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         db_table = "gxp_raids"

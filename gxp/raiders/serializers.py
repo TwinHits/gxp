@@ -49,7 +49,6 @@ class RaiderSerializer(serializers.ModelSerializer):
 
     def get_alts(self, raider):
         alts = [alt.alt.id for alt in raider.alts.all()]
-        print(alts)
         return alts
 
     class Meta:

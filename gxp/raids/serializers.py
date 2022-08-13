@@ -13,6 +13,7 @@ class RaidSerializer(serializers.ModelSerializer):
     optional = serializers.BooleanField(required=False)
     raiders = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all(), required=False, many=True)
     timestamp = serializers.IntegerField(required=False)
+    raidHelperEventId = serializers.CharField(required=False, allow_blank=True, default="")
 
     def validate_warcraftLogsId(self, value):
         if not value.isspace():
@@ -27,7 +28,7 @@ class RaidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Raid
-        fields = ['id', 'warcraftLogsId', 'optional', 'raiders', 'timestamp']
+        fields = ['id', 'warcraftLogsId', 'optional', 'raiders', 'timestamp', 'raidHelperEventId']
 
     def create(self, validated_data):
 
@@ -38,6 +39,9 @@ class RaidSerializer(serializers.ModelSerializer):
                 validated_data["timestamp"] = WarcraftLogsUtils.get_start_timestamp_from_report(raid_report)
             except Exception as err:
                 raise serializers.ValidationError(err)
+
+            validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
+            raiders = WarcraftLogsUtils.get_or_create_raiders_from_report(raid_report)
 
             validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
             raiders = WarcraftLogsUtils.get_or_create_raiders_from_report(raid_report)
