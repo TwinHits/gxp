@@ -8,6 +8,8 @@ from gxp.raiders.models import Raider
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
 from gxp.shared.warcraftLogs.utils import WarcraftLogsUtils
 
+from gxp.experience.generate_experience_gains import GenerateExperienceGainsForRaid
+
 class RaidSerializer(serializers.ModelSerializer):
     warcraftLogsId = serializers.CharField(required=False, allow_blank=True, default="")
     optional = serializers.BooleanField(required=False)
@@ -43,9 +45,6 @@ class RaidSerializer(serializers.ModelSerializer):
             validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
             raiders = WarcraftLogsUtils.get_or_create_raiders_from_report(raid_report)
 
-            validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
-            raiders = WarcraftLogsUtils.get_or_create_raiders_from_report(raid_report)
-
         if 'optional' not in validated_data:
             validated_data["optional"] = RaidUtils.is_raid_optional(validated_data.get("timestamp"))
 
@@ -53,7 +52,7 @@ class RaidSerializer(serializers.ModelSerializer):
         for raider in raiders:
             raid.raiders.add(raider)
 
-        RaidUtils.generate_experience_gains_for_raid(raid)
+        GenerateExperienceGainsForRaid(raid).generate_all()
 
         return raid
 

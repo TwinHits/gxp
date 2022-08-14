@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from gxp.raiders.models import Alt, Raider
+from gxp.raiders.models import Alias, Alt, Raider
 
 from gxp.raids.constants import ValidationErrors
 from gxp.raiders.utils import RaiderUtils 
@@ -24,12 +24,31 @@ class AltSerializer(serializers.ModelSerializer):
         return instance
 
 
+class AliasSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    raider = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
+
+    class Meta:
+        model = Alias
+        fields = ['name', 'raider']
+
+    def create(self, validated_data):
+        return Alias.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+
+        instance.save()
+        return instance
+
+
 class RaiderSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     joinTimestamp = serializers.IntegerField(required=False)
     experience = serializers.SerializerMethodField()
     totalRaids = serializers.SerializerMethodField()
     alts = serializers.SerializerMethodField()
+    aliases = serializers.SerializerMethodField()
 
     def validate_name(self, value):
         if not RaiderUtils.is_valid_character_name(value):
@@ -51,9 +70,13 @@ class RaiderSerializer(serializers.ModelSerializer):
         alts = [alt.alt.id for alt in raider.alts.all()]
         return alts
 
+    def get_aliases(self, raider):
+        aliases = [alias.name for alias in raider.aliases.all()]
+        return aliases
+
     class Meta:
         model = Raider
-        fields = ['id', 'name', 'joinTimestamp', 'alts', 'experience', 'totalRaids']
+        fields = ['id', 'name', 'joinTimestamp', 'alts', 'experience', 'totalRaids', 'aliases']
 
     def create(self, validated_data):
 

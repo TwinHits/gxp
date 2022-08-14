@@ -1,7 +1,8 @@
+from ast import alias
 from django.db.models import Sum
 
 from gxp.experience.models import ExperienceGain
-from gxp.raids.models import Raid
+from gxp.raids.models import Raid, Raider
 
 class RaiderUtils:
     def is_valid_character_name(name):
@@ -21,3 +22,13 @@ class RaiderUtils:
         result = Raid.objects.filter(raiders=raider.id).count()
         return result
 
+
+    def get_raider_for_name(name):
+        try:
+            return Raider.objects.get(name=name)
+        except Raider.DoesNotExist:
+            filter = Raider.objects.filter(aliases__name=name)
+            if filter.exists():
+                return filter.first()
+        
+        return None

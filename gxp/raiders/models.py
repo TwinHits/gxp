@@ -18,3 +18,12 @@ class Alt(models.Model):
 
     class Meta:
         db_table = "gxp_alts"
+
+
+class Alias(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, blank=False)
+    raider = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='aliases')
+
+    class Meta:
+        db_table = "gxp_aliases"
