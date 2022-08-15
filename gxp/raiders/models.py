@@ -10,6 +10,8 @@ class Raider(models.Model):
 
     class Meta:
         db_table = "gxp_raiders"
+        ordering = ["joinTimestamp"]
+
 
 class Alt(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -18,7 +20,7 @@ class Alt(models.Model):
 
     class Meta:
         db_table = "gxp_alts"
-
+        ordering = ["main"]
 
 class Alias(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -27,3 +29,4 @@ class Alias(models.Model):
 
     class Meta:
         db_table = "gxp_aliases"
+        ordering = ["raider"]

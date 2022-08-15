@@ -14,6 +14,8 @@ class ExperienceEvent(models.Model):
 
     class Meta:
         db_table = "gxp_experience_events"
+        ordering = ["key"]
+
 
 
 class ExperienceGain(models.Model):
