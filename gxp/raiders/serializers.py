@@ -30,7 +30,7 @@ class AliasSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alias
-        fields = ['name', 'raider']
+        fields = ['id', 'name', 'raider']
 
     def create(self, validated_data):
         return Alias.objects.create(**validated_data)
@@ -48,7 +48,7 @@ class RaiderSerializer(serializers.ModelSerializer):
     experience = serializers.SerializerMethodField()
     totalRaids = serializers.SerializerMethodField()
     alts = serializers.SerializerMethodField()
-    aliases = serializers.SerializerMethodField()
+    aliases = AliasSerializer(many=True, required=False)
 
     def validate_name(self, value):
         if not RaiderUtils.is_valid_character_name(value):
@@ -69,10 +69,6 @@ class RaiderSerializer(serializers.ModelSerializer):
     def get_alts(self, raider):
         alts = [alt.alt.id for alt in raider.alts.all()]
         return alts
-
-    def get_aliases(self, raider):
-        aliases = [alias.name for alias in raider.aliases.all()]
-        return aliases
 
     class Meta:
         model = Raider

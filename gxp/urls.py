@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from gxp.quickstart.views import UserViewSet, GroupViewSet
-from gxp.raids.views import LogsView, RaidsViewSet
+from gxp.raids.views import LogsViewSet, RaidsViewSet
 from gxp.raiders.views import AliasesViewSet, AltsViewSet, RaidersViewSet
 from gxp.experience.views import ExperienceEventsViewSet, ExperienceGainsViewSet, ExperienceLevelsViewSet
 
@@ -11,6 +11,7 @@ router.register(r'users', UserViewSet)
 router.register(r'groups', GroupViewSet)
 
 router.register(r'raids', RaidsViewSet)
+router.register(r'logs', LogsViewSet)
 
 router.register(r'alts', AltsViewSet)
 router.register(r'raiders', RaidersViewSet)
@@ -24,6 +25,4 @@ urlpatterns = [
     path('', include(router.urls)),
 
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-
-    path('logs/', LogsView.getLogs)
 ]

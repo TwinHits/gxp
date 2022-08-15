@@ -49,16 +49,16 @@ class WarcraftLogsInterface:
 
 
     @staticmethod
-    def get_report_ids_for_guild():
-        report_ids = []
+    def get_logcodes_for_guild():
+        log_codes = []
         page = 1
         has_more_pages = True
         while has_more_pages:
             response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_REPORTS_BY_GUILD, { "page": page })
-            report_ids.extend(response.get("data").get("guildData").get("guild").get("attendance").get("data"))
+            log_codes.extend(response.get("data").get("guildData").get("guild").get("attendance").get("data"))
             has_more_pages = response.get("data").get("guildData").get("guild").get("attendance").get("has_more_pages")
             page += 1
-        return report_ids
+        return log_codes
 
 
     @staticmethod

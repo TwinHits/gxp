@@ -36,7 +36,7 @@ class GenerateExperienceGainsForRaid:
 
     def boss_kill_and_complete_raid_experience(self):
 
-        kill_logs = WarcraftLogsInterface.get_raid_kills_by_report_id(self.raid.warcraftLogsId)
+        kill_logs = WarcraftLogsInterface.get_raid_kills_by_report_id(self.raid.log.logsCode)
 
         actors = kill_logs.get("masterData").get("actors") # array of player name and data id
         players_by_data_id = {actor.get("id"):actor.get("name") for actor in actors}
@@ -70,7 +70,7 @@ class GenerateExperienceGainsForRaid:
 
     def flask_and_consumes_raid_experience(self):
 
-        consumes_report = IronforgeAnalyzerInterface.get_consumes_for_report(self.raid.warcraftLogsId)
+        consumes_report = IronforgeAnalyzerInterface.get_consumes_for_report(self.raid.log.logsCode)
 
         # build encounter look up map of kills
         fights = consumes_report.get("fights")
@@ -115,8 +115,8 @@ class GenerateExperienceGainsForRaid:
 
     def sign_ups_raid_experience(self):
 
-        if self.raid.raidHelperEventId:
-            response = RaidHelperInterface.get_sign_ups_for_event_id(self.raid.raidHelperEventId)
+        if self.raid.log.raidHelperEventId:
+            response = RaidHelperInterface.get_sign_ups_for_event_id(self.raid.log.raidHelperEventId)
 
             tokens = {
                 "zone": self.raid.zone
@@ -137,20 +137,18 @@ class GenerateExperienceGainsForRaid:
                 name_parts = name.split("/")
                 """
 
-                print(f"name: {name}")
                 raider = RaiderUtils.get_raider_for_name(name)
                 if raider:
-                    print(f"found raider by alias: {raider.name}")
                     attended_raid = self.name_to_raider.get(raider.name)
                     tokens["sign_up"] = sign_up_state
 
                     timestamp = self.raid.timestamp - 1 # Offset time a bit for nice history ordering
                     if attended_raid:
-                        print(f"attending raider: {attended_raid}")
                         # If signed up at all and in raid, then +
                         ExperienceGainSerializer.create_experience_gain(self.signed_up_accurately_event_id, raider.id, raid_id=self.raid.id, timestamp=timestamp, tokens=tokens)
                     elif signed_absent and not attended_raid:
                         # If signed absent and not in raid, then +
                         ExperienceGainSerializer.create_experience_gain(self.signed_up_accurately_event_id, raider.id, raid_id=self.raid.id, timestamp=timestamp, tokens=tokens)
+                else:
+                    print(f"DID NOT FIND RAIDER {name} BY ALIAS")
 
-                    print(f"finished {name}")
