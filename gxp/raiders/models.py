@@ -5,7 +5,7 @@ from django.db import models
 
 class Raider(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=12, blank=False)
+    name = models.CharField(max_length=12, null=False)
     joinTimestamp = models.IntegerField()
 
     class Meta:
@@ -24,7 +24,7 @@ class Alt(models.Model):
 
 class Alias(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, blank=False)
+    name = models.CharField(max_length=255, null=False)
     raider = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='aliases')
 
     class Meta:
