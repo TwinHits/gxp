@@ -67,7 +67,7 @@ class RaiderSerializer(serializers.ModelSerializer):
         return RaiderUtils.count_total_raids_for_raider(raider)
 
     def get_alts(self, raider):
-        alts = [alt.alt.id for alt in raider.alts.all()]
+        alts = [RaiderSerializer(Raider.objects.get(pk=alt.alt.id)).data for alt in raider.alts.all()]
         return alts
 
     class Meta:
