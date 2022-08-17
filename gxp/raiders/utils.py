@@ -32,3 +32,23 @@ class RaiderUtils:
                 return filter.first()
         
         return None
+
+
+    def is_name_for_raider(name, raider):
+        # Check if the name is the raider, an alt, or an alias
+
+        # Is the name the raider
+        if name == raider.name:
+            return True
+
+        # is the name an alt
+        alts = [alt for alt in raider.alts.all() if alt.alt.name == name];
+        if len(alts):
+            return True
+
+
+        aliases = [alias for alias in raider.aliases.all() if alias.name == name];
+        if len(aliases):
+            return True
+    
+        return False
