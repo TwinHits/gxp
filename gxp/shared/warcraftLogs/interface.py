@@ -71,3 +71,9 @@ class WarcraftLogsInterface:
     def get_raid_kills_by_report_id(reportId):
         response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAID_KILLS_BY_REPORT_ID, { "code": reportId })
         return response.get("data").get("reportData").get("report")
+
+
+    @staticmethod
+    def get_performance_by_report_id(reportId):
+        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_PERFORMANCE_BY_REPORT_ID, { "code": reportId })
+        return response.get("data").get("reportData").get("report")

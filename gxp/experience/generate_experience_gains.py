@@ -31,6 +31,7 @@ class GenerateExperienceGainsForRaid:
         self.boss_kill_and_complete_raid_experience()
         self.flask_and_consumes_raid_experience()
         self.sign_ups_raid_experience()
+        self.performance_experience()
         
 
 
@@ -170,3 +171,7 @@ class GenerateExperienceGainsForRaid:
                     raider = RaiderUtils.get_raider_for_name(name)
                     if not raider:
                         print(f"DID NOT FIND RAIDER FOR {name}")
+
+
+    def performance_experience(self):
+        rankings = WarcraftLogsInterface.get_raid_kills_by_report_id(self.raid.log.logsCode).get("rankings")

@@ -64,3 +64,13 @@ class Queries:
             }
         }
     }"""
+
+
+    GET_PERFORMANCE_BY_REPORT_ID = """query ($code: String) {
+            reportData {
+                report(code: $code) {
+                    rankings
+                }
+            }
+        } 
+    """
