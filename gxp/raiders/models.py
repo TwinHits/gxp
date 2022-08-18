@@ -6,11 +6,11 @@ from django.db import models
 class Raider(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=12, null=False)
-    joinTimestamp = models.IntegerField()
+    join_timestamp = models.IntegerField()
 
     class Meta:
         db_table = "gxp_raiders"
-        ordering = ["joinTimestamp"]
+        ordering = ["join_timestamp"]
 
 
 class Alt(models.Model):

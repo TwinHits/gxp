@@ -12,6 +12,7 @@ class Log(models.Model):
 
     class Meta:
         db_table = "gxp_logs"
+        ordering = ["-timestamp"]
 
 class Raid(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -23,3 +24,4 @@ class Raid(models.Model):
 
     class Meta:
         db_table = "gxp_raids"
+        ordering = ["-timestamp"]

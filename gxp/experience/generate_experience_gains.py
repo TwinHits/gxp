@@ -13,19 +13,29 @@ class GenerateExperienceGainsForRaid:
     def __init__(self, raid):
         self.raid = raid
 
-        self.complete_raid_event_id = ExperienceEvent.objects.get(id="COMPLETE_RAID").id
-        self.boss_kill_event_id = ExperienceEvent.objects.get(id="BOSS_KILL").id
-        self.food_on_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_FOOD").id
-        self.food_off_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_NO_FOOD").id
-        self.flask_on_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_FLASK").id
-        self.flask_off_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_NO_FLASK").id
-        self.signed_up_accurately_event_id = ExperienceEvent.objects.get(id="SIGNED_UP_ACCURATELY").id
-        self.signed_up_inaccurately_event_id = ExperienceEvent.objects.get(id="SIGNED_UP_INACCURATELY").id
-        
-        self.name_to_raider = {}
-        for raider in self.raid.raiders.all():
-            self.name_to_raider[raider.name] = raider
+        self.complete_raid_event_id = "COMPLETE_RAID"
 
+        self.boss_kill_event_id = "BOSS_KILL"
+        self.missed_boss_kill_event_id = "MISSED_BOSS_KILL"
+
+        self.food_on_event_id = "BOSS_KILL_FOOD"
+        self.food_off_event_id = "BOSS_KILL_NO_FOOD"
+        self.flask_on_event_id = "BOSS_KILL_FLASK"
+        self.flask_off_event_id = "BOSS_KILL_NO_FLASK"
+
+        self.signed_up_accurately_event_id = "SIGNED_UP_ACCURATELY"
+        self.signed_up_inaccurately_event_id = "SIGNED_UP_INACCURATELY"
+
+        self.top_performer_event_id = "TOP_PERFORMANCE"
+        self.high_performer_event_id = "HIGH_PERFORMANCE"
+        self.mid_performer_event_id = "MID_PERFORMANCE"
+        self.low_performer_event_id = "LOW_PERFORMANCE"
+
+        self.raiders_by_name = {}
+        for raider in self.raid.raiders.all():
+            self.raiders_by_name[raider.name] = raider
+
+        self.timestamps_by_enounter_name = {}
 
     def generate_all(self):
         self.boss_kill_and_complete_raid_experience()
@@ -34,6 +44,15 @@ class GenerateExperienceGainsForRaid:
         self.performance_experience()
         
 
+    def get_experienceEvent_id_for_parse_percent(self, parse_percent):
+        if parse_percent <= 25:
+            return self.low_performer_event_id
+        elif parse_percent <= 50:
+            return self.mid_performer_event_id
+        elif parse_percent <= 75:
+            return self.high_performer_event_id
+        elif parse_percent <= 100:
+            return self.top_performer_event_id
 
     def boss_kill_and_complete_raid_experience(self):
 
@@ -48,8 +67,10 @@ class GenerateExperienceGainsForRaid:
         raid_end_timestamp = kill_logs.get("endTime")
         for kill in kills:
             kill_timestamp = raid_start_timestamp + kill.get("endTime")
+            encounter_name = kill.get("name")
+            self.timestamps_by_enounter_name[encounter_name] = kill_timestamp
             tokens = {
-                "encounter": kill.get("name"),
+                "encounter": encounter_name,
                 "kill_timestamp": kill_timestamp # endtime is ms since report started
             }
             for data_id in kill.get("friendlyPlayers"):
@@ -60,18 +81,14 @@ class GenerateExperienceGainsForRaid:
 
         number_of_kills = len(kills)
         for name, participating_kills in kill_count_by_name.items():
-            try:
-                raider = Raider.objects.get(name=name)
-                for tokens in reversed(participating_kills):
-                    ExperienceGainSerializer.create_experience_gain(self.boss_kill_event_id, raider.id, raid_id=self.raid.id, timestamp=tokens.get("kill_timestamp"), tokens=tokens)
-                if len(participating_kills) >= number_of_kills:
-                    complete_raid_tokens = {
-                        "zone": self.raid.zone,
-                    }
-                    ExperienceGainSerializer.create_experience_gain(self.complete_raid_event_id, raider.id, raid_id=self.raid.id, timestamp=raid_end_timestamp, tokens=complete_raid_tokens)
-
-            except Raider.DoesNotExist:
-                print(f"{name} is not a raider!")
+            raider = self.raiders_by_name[name]
+            for tokens in reversed(participating_kills):
+                ExperienceGainSerializer.create_experience_gain(self.boss_kill_event_id, raider.id, raid_id=self.raid.id, timestamp=tokens.get("kill_timestamp"), tokens=tokens)
+            if len(participating_kills) >= number_of_kills:
+                complete_raid_tokens = {
+                    "zone": self.raid.zone,
+                }
+                ExperienceGainSerializer.create_experience_gain(self.complete_raid_event_id, raider.id, raid_id=self.raid.id, timestamp=raid_end_timestamp, tokens=complete_raid_tokens)
 
     def flask_and_consumes_raid_experience(self):
 
@@ -99,7 +116,7 @@ class GenerateExperienceGainsForRaid:
             if encounter: # only for fight ids we want want from above
                 for data in consumes.get("data"):
                     raider_name = data.get("actor").get("name")
-                    raider = Raider.objects.get(name=raider_name)
+                    raider = self.raiders_by_name[raider_name]
                     food = len(data.get("buffs").get("food"))
                     flask = len(data.get("buffs").get("flask"))
 
@@ -150,7 +167,7 @@ class GenerateExperienceGainsForRaid:
                 """
 
                 # is this name in the attending raiders?
-                for raider in self.name_to_raider.values():
+                for raider in self.raiders_by_name.values():
                     next = False
                     if RaiderUtils.is_name_for_raider(name, raider):
                         # If signed up at all and in raid, then +
@@ -174,4 +191,22 @@ class GenerateExperienceGainsForRaid:
 
 
     def performance_experience(self):
-        rankings = WarcraftLogsInterface.get_raid_kills_by_report_id(self.raid.log.logsCode).get("rankings")
+        rankings = WarcraftLogsInterface.get_performance_by_report_id(self.raid.log.logsCode).get("rankings").get("data")
+
+        for encounter in rankings:
+            encounter_name = encounter.get("encounter").get("name")
+            tokens = {
+                "encounter": encounter_name
+            }
+            timestamp = self.timestamps_by_enounter_name.get(encounter_name)
+
+            tanks = encounter.get("roles").get("tanks").get("characters")
+            healers = encounter.get("roles").get("healers").get("characters")
+            dps = encounter.get("roles").get("dps").get("characters")
+            ranking_raiders = tanks + healers + dps
+
+            for ranking_raider in ranking_raiders:
+                raider = self.raiders_by_name[ranking_raider.get("name")]
+                parse_percent = ranking_raider.get("bracketPercent")
+                event_id = self.get_experienceEvent_id_for_parse_percent(parse_percent);
+                ExperienceGainSerializer.create_experience_gain(event_id, raider.id, raid_id=self.raid.id, timestamp=timestamp, tokens=tokens)

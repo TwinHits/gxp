@@ -17,7 +17,7 @@ class ExperienceGainsViewSet(viewsets.ModelViewSet):
         raiderId = self.request.query_params.get('raiderId')
 
         if raiderId:
-            self.queryset = self.queryset.filter(raiderId=raiderId)
+            self.queryset = self.queryset.filter(raider=raiderId)
 
         return self.queryset
 

@@ -62,6 +62,11 @@ class WarcraftLogsInterface:
 
 
     @staticmethod
+    def get_raiders_by_report_id(reportId):
+        report = WarcraftLogsInterface.get_raid_by_report_id(reportId)
+        return WarcraftLogsUtils.get_or_create_raiders_from_report(report)
+
+    @staticmethod
     def get_raid_by_report_id(reportId):
         response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAID_BY_REPORT_ID, { "code": reportId })
         return response.get("data").get("reportData").get("report")

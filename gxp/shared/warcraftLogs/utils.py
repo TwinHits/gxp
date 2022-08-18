@@ -1,3 +1,4 @@
+from ntpath import join
 from gxp.raiders.models import Raider
 from gxp.raiders.serializers import RaiderSerializer
 
@@ -5,6 +6,7 @@ class WarcraftLogsUtils:
 
     def is_valid_warcraft_logs_id(id):
         return True
+
 
     def get_message_from_errors(dict):
         message = ""
@@ -23,15 +25,15 @@ class WarcraftLogsUtils:
         
 
     def get_or_create_raiders_from_report(report):
+        timestamp = WarcraftLogsUtils.get_start_timestamp_from_report(report)
         raiders = []
         for character in report.get("rankedCharacters"):
             name = character.get("name")
-            raider = Raider.objects.filter(name=name).first()
-
-            if not raider:
-                raider = RaiderSerializer.create_raider(name) 
-
-            if raider:
+            try:
+                raider = Raider.objects.get(name=name)
+                raiders.append(raider)
+            except Raider.DoesNotExist:
+                raider = RaiderSerializer.create_raider(name, join_timestamp=timestamp) 
                 raiders.append(raider)
 
         return raiders

@@ -1,3 +1,4 @@
+from ntpath import join
 from rest_framework import serializers
 
 from gxp.raiders.models import Alias, Alt, Raider
@@ -44,9 +45,10 @@ class AliasSerializer(serializers.ModelSerializer):
 
 class RaiderSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    joinTimestamp = serializers.IntegerField(required=False)
+    join_timestamp = serializers.IntegerField(required=False)
     experience = serializers.SerializerMethodField()
     totalRaids = serializers.SerializerMethodField()
+    totalWeeks = serializers.SerializerMethodField()
     alts = serializers.SerializerMethodField()
     aliases = AliasSerializer(many=True, required=False)
 
@@ -66,18 +68,21 @@ class RaiderSerializer(serializers.ModelSerializer):
     def get_totalRaids(self, raider):
         return RaiderUtils.count_total_raids_for_raider(raider)
 
+    def get_totalWeeks(self, raider):
+        return RaiderUtils.count_total_weeks_for_raider(raider)
+
     def get_alts(self, raider):
         alts = [RaiderSerializer(Raider.objects.get(pk=alt.alt.id)).data for alt in raider.alts.all()]
         return alts
 
     class Meta:
         model = Raider
-        fields = ['id', 'name', 'joinTimestamp', 'alts', 'experience', 'totalRaids', 'aliases']
+        fields = ['id', 'name', 'join_timestamp', 'alts', 'experience', 'totalRaids', 'totalWeeks', 'aliases']
 
     def create(self, validated_data):
 
-        if not validated_data.get("joinTimestamp"):
-            validated_data["joinTimestamp"] = SharedUtils.get_now_timestamp()
+        if not validated_data.get("join_timestamp"):
+            validated_data["join_timestamp"] = SharedUtils.get_now_timestamp()
 
         return Raider.objects.create(**validated_data)
 
@@ -88,7 +93,10 @@ class RaiderSerializer(serializers.ModelSerializer):
         return instance
 
     @staticmethod 
-    def create_raider(name):
-        raider_serializer = RaiderSerializer(data={"name": name})
+    def create_raider(name, join_timestamp=None):
+        data = { "name": name}
+        if join_timestamp: data['join_timestamp'] = join_timestamp
+
+        raider_serializer = RaiderSerializer(data=data)
         raider_serializer.is_valid(raise_exception=True);
-        raider_serializer.save()
+        return raider_serializer.save()

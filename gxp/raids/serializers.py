@@ -28,9 +28,16 @@ class LogSerializer(serializers.ModelSerializer):
         fields = ['logsCode', 'raidHelperEventId', 'active', 'timestamp', 'zone']
         
     def create(self, validated_data):
-        raid_report = WarcraftLogsInterface.get_raid_by_report_id(validated_data["logsCode"])
-        validated_data["timestamp"] = WarcraftLogsUtils.get_start_timestamp_from_report(raid_report)
-        validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
+        if Log.objects.filter(logsCode=self.get("logsCode")):
+            raise serializers.ValidationError(ValidationErrors.WARCRAFT_LOGS_ID_LOG_ALREADY_EXISTS) 
+
+        if not validated_data.get("timestamp") or not validated_data.get("zone"):
+            raid_report = WarcraftLogsInterface.get_raid_by_report_id(validated_data["logsCode"])
+            if not validated_data.get("timestamp"):
+                validated_data["timestamp"] = WarcraftLogsUtils.get_start_timestamp_from_report(raid_report)
+            if not validated_data.get("zone"):
+                validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
+
         log = Log.objects.create(**validated_data)
         return log
 
@@ -46,22 +53,19 @@ class RaidSerializer(serializers.ModelSerializer):
     raiders = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all(), required=False, many=True)
     timestamp = serializers.IntegerField(required=False)
     log = LogSerializer(required=False) 
-
            
-
     class Meta:
         model = Raid
         fields = ['id', 'log', 'optional', 'raiders', 'timestamp']
 
     def create(self, validated_data):
-
         raiders = []
         if 'log' in validated_data:
 
             logs_code = validated_data["log"].get("logsCode")
                 
             if Raid.objects.filter(log__logsCode=logs_code):
-                raise serializers.ValidationError(ValidationErrors.WARCRAFT_LOGS_ID_ALREADY_EXISTS) 
+                raise serializers.ValidationError(ValidationErrors.WARCRAFT_LOGS_ID_RAID_ALREADY_EXISTS) 
 
             try:
                 log = Log.objects.get(pk=logs_code)
@@ -69,10 +73,12 @@ class RaidSerializer(serializers.ModelSerializer):
                 log.save()
                 validated_data['log'] = log
 
-                raid_report = WarcraftLogsInterface.get_raid_by_report_id(logs_code)
-                validated_data["timestamp"] = WarcraftLogsUtils.get_start_timestamp_from_report(raid_report)
-                validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
-                raiders = WarcraftLogsUtils.get_or_create_raiders_from_report(raid_report)
+                if 'timestamp' not in validated_data:
+                    validated_data['timestamp'] = log.timestamp
+                if 'zone' not in validated_data:
+                    validated_data['zone'] = log.zone
+
+                raiders = WarcraftLogsInterface.get_raiders_by_report_id(logs_code)
             except Exception as err:
                 raise serializers.ValidationError(err)
 
@@ -85,6 +91,7 @@ class RaidSerializer(serializers.ModelSerializer):
         raid = Raid.objects.create(**validated_data)
         for raider in raiders:
             raid.raiders.add(raider)
+        raid.save()
 
         GenerateExperienceGainsForRaid(raid).generate_all()
 

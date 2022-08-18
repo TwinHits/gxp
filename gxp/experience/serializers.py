@@ -26,8 +26,8 @@ class ExperienceEventSerializer(serializers.ModelSerializer):
 
 
 class ExperienceGainSerializer(serializers.ModelSerializer):
-    experienceEventId = serializers.PrimaryKeyRelatedField(queryset=ExperienceEvent.objects.all())
-    raiderId = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
+    experienceEvent = serializers.PrimaryKeyRelatedField(queryset=ExperienceEvent.objects.all())
+    raider = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
     timestamp = serializers.IntegerField(required=False)
     tokens = serializers.JSONField(required=False)
     raid = serializers.PrimaryKeyRelatedField(queryset=Raid.objects.all(), required=False)
@@ -39,7 +39,7 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperienceGain
-        fields = ['id', 'experienceEventId', 'raiderId', 'timestamp', 'tokens', 'description', 'raid']
+        fields = ['id', 'experienceEvent', 'raider', 'timestamp', 'tokens', 'description', 'raid']
 
     def create(self, validated_data):
         if not validated_data.get("timestamp"):
@@ -48,8 +48,8 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
         return ExperienceGain.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.experienceEventId = validated_data.get('experienceEventId', instance.experienceEventId)
-        instance.raiderId = validated_data.get('raiderId', instance.raiderId)
+        instance.experienceEvent = validated_data.get('experienceEvent', instance.experienceEvent)
+        instance.raider = validated_data.get('raider', instance.raider)
 
         instance.save()
         return instance
@@ -58,8 +58,8 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
     def create_experience_gain(experience_event_id, raider_id, raid_id=None, timestamp=None, tokens=None):
         data = {}
 
-        data["experienceEventId"] = experience_event_id
-        data["raiderId"] = raider_id
+        data["experienceEvent"] = experience_event_id
+        data["raider"] = raider_id
         if raid_id: data["raid"] = raid_id
         if tokens: data["tokens"] = tokens
         if timestamp: data["timestamp"] = timestamp
