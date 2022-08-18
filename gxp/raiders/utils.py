@@ -10,7 +10,7 @@ class RaiderUtils:
 
 
     def calculate_experience_for_raider(raider):
-        result = ExperienceGain.objects.filter(raider=raider.id).aggregate(Sum('experienceEvent__value'))
+        result = ExperienceGain.objects.filter(raider=raider.id, raid__optional=False).aggregate(Sum('experienceEvent__value'))
         result = result["experienceEvent__value__sum"]
         if not result:
             return 0

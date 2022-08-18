@@ -198,7 +198,8 @@ class GenerateExperienceGainsForRaid:
             tokens = {
                 "encounter": encounter_name
             }
-            timestamp = self.timestamps_by_enounter_name.get(encounter_name) + 3  # Offset time a bit for nice history ordering
+            timestamp = self.timestamps_by_enounter_name.get(encounter_name)
+            if timestamp: timestamp = timestamp + 3  # Offset time a bit for nice history ordering
 
             tanks = encounter.get("roles").get("tanks").get("characters")
             healers = encounter.get("roles").get("healers").get("characters")

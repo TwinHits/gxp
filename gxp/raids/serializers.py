@@ -28,7 +28,7 @@ class LogSerializer(serializers.ModelSerializer):
         fields = ['logsCode', 'raidHelperEventId', 'active', 'timestamp', 'zone']
         
     def create(self, validated_data):
-        if Log.objects.filter(logsCode=self.get("logsCode")):
+        if Log.objects.filter(logsCode=validated_data.get("logsCode")):
             raise serializers.ValidationError(ValidationErrors.WARCRAFT_LOGS_ID_LOG_ALREADY_EXISTS) 
 
         if not validated_data.get("timestamp") or not validated_data.get("zone"):
@@ -43,6 +43,7 @@ class LogSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.raidHelperEventId = validated_data.get('raidHelperEventId', instance.raidHelperEventId)
+        instance.active = validated_data.get('active', instance.active)
 
         instance.save()
         return instance
@@ -66,6 +67,9 @@ class RaidSerializer(serializers.ModelSerializer):
                 
             if Raid.objects.filter(log__logsCode=logs_code):
                 raise serializers.ValidationError(ValidationErrors.WARCRAFT_LOGS_ID_RAID_ALREADY_EXISTS) 
+
+            if not validated_data['log'].get("active"): 
+                raise serializers.ValidationError(ValidationErrors.LOG_INACTIVE) 
 
             try:
                 log = Log.objects.get(pk=logs_code)
