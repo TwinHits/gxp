@@ -17,4 +17,3 @@ class AltsViewSet(viewsets.ModelViewSet):
 class AliasesViewSet(viewsets.ModelViewSet):
     queryset = Alias.objects.all()
     serializer_class = AliasSerializer
-

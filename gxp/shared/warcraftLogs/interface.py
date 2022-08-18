@@ -6,6 +6,7 @@ from gxp.shared.api.api import Api
 from gxp.shared.warcraftLogs.queries import Queries
 from gxp.shared.warcraftLogs.utils import WarcraftLogsUtils
 
+
 class WarcraftLogsInterface:
 
     client_id = settings.WARCRAFT_LOGS_CLIENT_ID
@@ -16,18 +17,24 @@ class WarcraftLogsInterface:
     token_url = base_url + settings.WARCRAFT_LOGS_TOKEN_ENDPOINT
     endpoint = base_url + "/api/v2/client"
 
-
     @staticmethod
     def authenticate():
-        client_credentials_encoded = f"{WarcraftLogsInterface.client_id}:{WarcraftLogsInterface.client_secret}".encode("utf-8")
-        authorization_header_value =  f'Basic {base64.b64encode(client_credentials_encoded).decode("utf-8")}'
+        client_credentials_encoded = f"{WarcraftLogsInterface.client_id}:{WarcraftLogsInterface.client_secret}".encode(
+            "utf-8"
+        )
+        authorization_header_value = (
+            f'Basic {base64.b64encode(client_credentials_encoded).decode("utf-8")}'
+        )
         body = "grant_type=client_credentials"
-        response = Api.post(WarcraftLogsInterface.token_url, data=body, headers={
-                'Authorization': authorization_header_value,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            })
+        response = Api.post(
+            WarcraftLogsInterface.token_url,
+            data=body,
+            headers={
+                "Authorization": authorization_header_value,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        )
         return response
-
 
     @staticmethod
     def __post_grapql_query(query, variables):
@@ -35,18 +42,21 @@ class WarcraftLogsInterface:
         body = {
             "query": query,
             "variables": variables,
-        };
+        }
 
-        response = Api.post(WarcraftLogsInterface.endpoint, json=body, headers={
-            "Authorization": f'Bearer {auth.get("access_token")}',
-            'Content-Type': 'application/json',
-        })
+        response = Api.post(
+            WarcraftLogsInterface.endpoint,
+            json=body,
+            headers={
+                "Authorization": f'Bearer {auth.get("access_token")}',
+                "Content-Type": "application/json",
+            },
+        )
 
         if response.get("errors"):
             raise Exception(WarcraftLogsUtils.get_message_from_errors(response))
 
         return response
-
 
     @staticmethod
     def get_logcodes_for_guild():
@@ -54,12 +64,25 @@ class WarcraftLogsInterface:
         page = 1
         has_more_pages = True
         while has_more_pages:
-            response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_REPORTS_BY_GUILD, { "page": page })
-            log_codes.extend(response.get("data").get("guildData").get("guild").get("attendance").get("data"))
-            has_more_pages = response.get("data").get("guildData").get("guild").get("attendance").get("has_more_pages")
+            response = WarcraftLogsInterface.__post_grapql_query(
+                Queries.GET_REPORTS_BY_GUILD, {"page": page}
+            )
+            log_codes.extend(
+                response.get("data")
+                .get("guildData")
+                .get("guild")
+                .get("attendance")
+                .get("data")
+            )
+            has_more_pages = (
+                response.get("data")
+                .get("guildData")
+                .get("guild")
+                .get("attendance")
+                .get("has_more_pages")
+            )
             page += 1
         return log_codes
-
 
     @staticmethod
     def get_raiders_by_report_id(reportId):
@@ -68,17 +91,21 @@ class WarcraftLogsInterface:
 
     @staticmethod
     def get_raid_by_report_id(reportId):
-        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAID_BY_REPORT_ID, { "code": reportId })
+        response = WarcraftLogsInterface.__post_grapql_query(
+            Queries.GET_RAID_BY_REPORT_ID, {"code": reportId}
+        )
         return response.get("data").get("reportData").get("report")
-
 
     @staticmethod
     def get_raid_kills_by_report_id(reportId):
-        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_RAID_KILLS_BY_REPORT_ID, { "code": reportId })
+        response = WarcraftLogsInterface.__post_grapql_query(
+            Queries.GET_RAID_KILLS_BY_REPORT_ID, {"code": reportId}
+        )
         return response.get("data").get("reportData").get("report")
-
 
     @staticmethod
     def get_performance_by_report_id(reportId):
-        response = WarcraftLogsInterface.__post_grapql_query(Queries.GET_PERFORMANCE_BY_REPORT_ID, { "code": reportId })
+        response = WarcraftLogsInterface.__post_grapql_query(
+            Queries.GET_PERFORMANCE_BY_REPORT_ID, {"code": reportId}
+        )
         return response.get("data").get("reportData").get("report")

@@ -2,8 +2,8 @@ from gxp.shared.api.api import Api
 
 from gxp.shared.raidHelper.utils import RaidHelperUtils
 
-class RaidHelperInterface:
 
+class RaidHelperInterface:
     @staticmethod
     def get_sign_ups_for_event_id(event_id):
         try:

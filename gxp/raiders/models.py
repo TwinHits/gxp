@@ -15,17 +15,20 @@ class Raider(models.Model):
 
 class Alt(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    alt = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='main')
-    main = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='alts')
+    alt = models.ForeignKey("Raider", on_delete=models.CASCADE, related_name="main")
+    main = models.ForeignKey("Raider", on_delete=models.CASCADE, related_name="alts")
 
     class Meta:
         db_table = "gxp_alts"
         ordering = ["main"]
 
+
 class Alias(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, null=False)
-    raider = models.ForeignKey('Raider', on_delete=models.CASCADE, related_name='aliases')
+    raider = models.ForeignKey(
+        "Raider", on_delete=models.CASCADE, related_name="aliases"
+    )
 
     class Meta:
         db_table = "gxp_aliases"

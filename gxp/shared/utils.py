@@ -2,6 +2,7 @@ from datetime import datetime
 import time
 from uuid import UUID, uuid4
 
+
 class SharedUtils:
     def get_now_timestamp():
         return time.time()
@@ -12,8 +13,8 @@ class SharedUtils:
     def get_weeks_since_timestamp(timestamp):
         date = SharedUtils.get_datetime_from_timestamp(timestamp)
         now = datetime.now()
-        return (now - date).days // 7 # floor divison, so no decimal
-        
+        return (now - date).days // 7  # floor divison, so no decimal
+
     def format_datetime_as_date(datetime):
         return datetime.strftime("%m/%d/%Y")
 

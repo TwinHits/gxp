@@ -8,29 +8,32 @@ from gxp.experience.utils import ExperienceUtils
 
 
 class ExperienceEventSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ExperienceEvent
-        fields = ['id', 'description', 'value', 'template']
+        fields = ["id", "description", "value", "template"]
 
     def create(self, validated_data):
         return ExperienceEvent.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.description = validated_data.get('description', instance.description)
-        instance.value = validated_data.get('value', instance.value)
-        instance.template = validated_data.get('template', instance.template)
+        instance.description = validated_data.get("description", instance.description)
+        instance.value = validated_data.get("value", instance.value)
+        instance.template = validated_data.get("template", instance.template)
 
         instance.save()
         return instance
 
 
 class ExperienceGainSerializer(serializers.ModelSerializer):
-    experienceEvent = serializers.PrimaryKeyRelatedField(queryset=ExperienceEvent.objects.all())
+    experienceEvent = serializers.PrimaryKeyRelatedField(
+        queryset=ExperienceEvent.objects.all()
+    )
     raider = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
     timestamp = serializers.IntegerField(required=False)
     tokens = serializers.JSONField(required=False)
-    raid = serializers.PrimaryKeyRelatedField(queryset=Raid.objects.all(), required=False)
+    raid = serializers.PrimaryKeyRelatedField(
+        queryset=Raid.objects.all(), required=False
+    )
     description = serializers.SerializerMethodField()
 
     def get_description(self, experience_gain):
@@ -39,7 +42,15 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperienceGain
-        fields = ['id', 'experienceEvent', 'raider', 'timestamp', 'tokens', 'description', 'raid']
+        fields = [
+            "id",
+            "experienceEvent",
+            "raider",
+            "timestamp",
+            "tokens",
+            "description",
+            "raid",
+        ]
 
     def create(self, validated_data):
         if not validated_data.get("timestamp"):
@@ -48,39 +59,47 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
         return ExperienceGain.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.experienceEvent = validated_data.get('experienceEvent', instance.experienceEvent)
-        instance.raider = validated_data.get('raider', instance.raider)
+        instance.experienceEvent = validated_data.get(
+            "experienceEvent", instance.experienceEvent
+        )
+        instance.raider = validated_data.get("raider", instance.raider)
 
         instance.save()
         return instance
 
     @staticmethod
-    def create_experience_gain(experience_event_id, raider_id, raid_id=None, timestamp=None, tokens=None):
+    def create_experience_gain(
+        experience_event_id, raider_id, raid_id=None, timestamp=None, tokens=None
+    ):
         data = {}
 
         data["experienceEvent"] = experience_event_id
         data["raider"] = raider_id
-        if raid_id: data["raid"] = raid_id
-        if tokens: data["tokens"] = tokens
-        if timestamp: data["timestamp"] = timestamp
+        if raid_id:
+            data["raid"] = raid_id
+        if tokens:
+            data["tokens"] = tokens
+        if timestamp:
+            data["timestamp"] = timestamp
 
         experience_gain_serializer = ExperienceGainSerializer(data=data)
-        experience_gain_serializer.is_valid(raise_exception=True);
+        experience_gain_serializer.is_valid(raise_exception=True)
         experience_gain_serializer.save()
 
 
 class ExperienceLevelSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ExperienceLevel
-        fields = ['id', 'name', 'experience_required']
+        fields = ["id", "name", "experience_required"]
 
     def create(self, validated_data):
         return ExperienceLevel.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.experience_required = validated_data.get('experience_required', instance.experience_required)
+        instance.name = validated_data.get("name", instance.name)
+        instance.experience_required = validated_data.get(
+            "experience_required", instance.experience_required
+        )
 
         instance.save()
         return instance

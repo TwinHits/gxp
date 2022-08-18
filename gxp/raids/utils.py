@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 class RaidUtils:
     def is_raid_optional(timestamp):
         notOptionalDays = [1, 3]

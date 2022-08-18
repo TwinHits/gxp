@@ -9,44 +9,88 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Raider',
+            name="Raider",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=12)),
-                ('joinTimestamp', models.IntegerField()),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=12)),
+                ("joinTimestamp", models.IntegerField()),
             ],
             options={
-                'db_table': 'gxp_raiders',
-                'ordering': ['joinTimestamp'],
+                "db_table": "gxp_raiders",
+                "ordering": ["joinTimestamp"],
             },
         ),
         migrations.CreateModel(
-            name='Alt',
+            name="Alt",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('alt', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='main', to='raiders.raider')),
-                ('main', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='alts', to='raiders.raider')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "alt",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="main",
+                        to="raiders.raider",
+                    ),
+                ),
+                (
+                    "main",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="alts",
+                        to="raiders.raider",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'gxp_alts',
-                'ordering': ['main'],
+                "db_table": "gxp_alts",
+                "ordering": ["main"],
             },
         ),
         migrations.CreateModel(
-            name='Alias',
+            name="Alias",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('raider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='aliases', to='raiders.raider')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "raider",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="aliases",
+                        to="raiders.raider",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'gxp_aliases',
-                'ordering': ['raider'],
+                "db_table": "gxp_aliases",
+                "ordering": ["raider"],
             },
         ),
     ]

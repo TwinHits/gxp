@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('raids', '0002_alter_log_options_alter_raid_options'),
+        ("raids", "0002_alter_log_options_alter_raid_options"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='log',
-            options={'ordering': ['-timestamp']},
+            name="log",
+            options={"ordering": ["-timestamp"]},
         ),
         migrations.AlterModelOptions(
-            name='raid',
-            options={'ordering': ['-timestamp']},
+            name="raid",
+            options={"ordering": ["-timestamp"]},
         ),
     ]

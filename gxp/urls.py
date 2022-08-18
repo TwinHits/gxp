@@ -4,25 +4,28 @@ from rest_framework import routers
 from gxp.quickstart.views import UserViewSet, GroupViewSet
 from gxp.raids.views import LogsViewSet, RaidsViewSet
 from gxp.raiders.views import AliasesViewSet, AltsViewSet, RaidersViewSet
-from gxp.experience.views import ExperienceEventsViewSet, ExperienceGainsViewSet, ExperienceLevelsViewSet
+from gxp.experience.views import (
+    ExperienceEventsViewSet,
+    ExperienceGainsViewSet,
+    ExperienceLevelsViewSet,
+)
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'groups', GroupViewSet)
+router.register(r"users", UserViewSet)
+router.register(r"groups", GroupViewSet)
 
-router.register(r'raids', RaidsViewSet)
-router.register(r'logs', LogsViewSet)
+router.register(r"raids", RaidsViewSet)
+router.register(r"logs", LogsViewSet)
 
-router.register(r'alts', AltsViewSet)
-router.register(r'raiders', RaidersViewSet)
-router.register(r'aliases', AliasesViewSet)
+router.register(r"alts", AltsViewSet)
+router.register(r"raiders", RaidersViewSet)
+router.register(r"aliases", AliasesViewSet)
 
-router.register(r'experienceEvents', ExperienceEventsViewSet)
-router.register(r'experienceGains', ExperienceGainsViewSet)
-router.register(r'experienceLevels', ExperienceLevelsViewSet)
+router.register(r"experienceEvents", ExperienceEventsViewSet)
+router.register(r"experienceGains", ExperienceGainsViewSet)
+router.register(r"experienceLevels", ExperienceLevelsViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
-
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path("", include(router.urls)),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]

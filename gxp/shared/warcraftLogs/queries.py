@@ -1,4 +1,3 @@
-
 class Queries:
 
     GET_REPORTS_BY_GUILD = """query ($page: Int) {
@@ -17,7 +16,6 @@ class Queries:
             }
         }
     }"""
-
 
     GET_RAID_BY_REPORT_ID = """query ($code: String) {
         reportData {
@@ -64,7 +62,6 @@ class Queries:
             }
         }
     }"""
-
 
     GET_PERFORMANCE_BY_REPORT_ID = """query ($code: String) {
             reportData {

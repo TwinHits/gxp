@@ -10,49 +10,90 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('raids', '0001_initial'),
-        ('raiders', '__first__'),
+        ("raids", "0001_initial"),
+        ("raiders", "__first__"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExperienceEvent',
+            name="ExperienceEvent",
             fields=[
-                ('id', models.CharField(max_length=255, primary_key=True, serialize=False)),
-                ('description', models.CharField(max_length=255)),
-                ('template', models.CharField(max_length=255)),
-                ('value', models.IntegerField()),
+                (
+                    "id",
+                    models.CharField(max_length=255, primary_key=True, serialize=False),
+                ),
+                ("description", models.CharField(max_length=255)),
+                ("template", models.CharField(max_length=255)),
+                ("value", models.IntegerField()),
             ],
             options={
-                'db_table': 'gxp_experience_events',
-                'ordering': ['id'],
+                "db_table": "gxp_experience_events",
+                "ordering": ["id"],
             },
         ),
         migrations.CreateModel(
-            name='ExperienceLevel',
+            name="ExperienceLevel",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('experience_required', models.IntegerField()),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("experience_required", models.IntegerField()),
             ],
             options={
-                'db_table': 'gxp_experience_levels',
-                'ordering': ['-experience_required'],
+                "db_table": "gxp_experience_levels",
+                "ordering": ["-experience_required"],
             },
         ),
         migrations.CreateModel(
-            name='ExperienceGain',
+            name="ExperienceGain",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('timestamp', models.IntegerField()),
-                ('tokens', models.JSONField(default=dict)),
-                ('experienceEvent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='experienceGains', to='experience.experienceevent')),
-                ('raid', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='experienceGains', to='raids.raid')),
-                ('raider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='experienceGains', to='raiders.raider')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("timestamp", models.IntegerField()),
+                ("tokens", models.JSONField(default=dict)),
+                (
+                    "experienceEvent",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="experienceGains",
+                        to="experience.experienceevent",
+                    ),
+                ),
+                (
+                    "raid",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="experienceGains",
+                        to="raids.raid",
+                    ),
+                ),
+                (
+                    "raider",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="experienceGains",
+                        to="raiders.raider",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'gxp_experience_gains',
-                'ordering': ['-timestamp'],
+                "db_table": "gxp_experience_gains",
+                "ordering": ["-timestamp"],
             },
         ),
     ]

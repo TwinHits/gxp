@@ -3,8 +3,8 @@ from rest_framework import serializers
 from gxp.raiders.models import Alias, Alt, Raider
 
 from gxp.raids.constants import ValidationErrors
-from gxp.raiders.utils import RaiderUtils 
-from gxp.shared.utils import SharedUtils 
+from gxp.raiders.utils import RaiderUtils
+from gxp.shared.utils import SharedUtils
 
 
 class AltSerializer(serializers.ModelSerializer):
@@ -13,7 +13,7 @@ class AltSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alt
-        fields = ['id', 'main', 'alt']
+        fields = ["id", "main", "alt"]
 
     def create(self, validated_data):
         return Alt.objects.create(**validated_data)
@@ -30,13 +30,13 @@ class AliasSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alias
-        fields = ['id', 'name', 'raider']
+        fields = ["id", "name", "raider"]
 
     def create(self, validated_data):
         return Alias.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
+        instance.name = validated_data.get("name", instance.name)
 
         instance.save()
         return instance
@@ -75,12 +75,25 @@ class RaiderSerializer(serializers.ModelSerializer):
         return RaiderUtils.calculate_experience_multipler_for_raider(raider)
 
     def get_alts(self, raider):
-        alts = [RaiderSerializer(Raider.objects.get(pk=alt.alt.id)).data for alt in raider.alts.all()]
+        alts = [
+            RaiderSerializer(Raider.objects.get(pk=alt.alt.id)).data
+            for alt in raider.alts.all()
+        ]
         return alts
 
     class Meta:
         model = Raider
-        fields = ['id', 'name', 'join_timestamp', 'alts', 'experience', 'totalRaids', 'totalWeeks', 'experienceMultipler', 'aliases']
+        fields = [
+            "id",
+            "name",
+            "join_timestamp",
+            "alts",
+            "experience",
+            "totalRaids",
+            "totalWeeks",
+            "experienceMultipler",
+            "aliases",
+        ]
 
     def create(self, validated_data):
 
@@ -90,16 +103,17 @@ class RaiderSerializer(serializers.ModelSerializer):
         return Raider.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
+        instance.name = validated_data.get("name", instance.name)
 
         instance.save()
         return instance
 
-    @staticmethod 
+    @staticmethod
     def create_raider(name, join_timestamp=None):
-        data = { "name": name}
-        if join_timestamp: data['join_timestamp'] = join_timestamp
+        data = {"name": name}
+        if join_timestamp:
+            data["join_timestamp"] = join_timestamp
 
         raider_serializer = RaiderSerializer(data=data)
-        raider_serializer.is_valid(raise_exception=True);
+        raider_serializer.is_valid(raise_exception=True)
         return raider_serializer.save()

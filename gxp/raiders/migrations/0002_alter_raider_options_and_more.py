@@ -6,17 +6,17 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('raiders', '0001_initial'),
+        ("raiders", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='raider',
-            options={'ordering': ['join_timestamp']},
+            name="raider",
+            options={"ordering": ["join_timestamp"]},
         ),
         migrations.RenameField(
-            model_name='raider',
-            old_name='joinTimestamp',
-            new_name='join_timestamp',
+            model_name="raider",
+            old_name="joinTimestamp",
+            new_name="join_timestamp",
         ),
     ]
