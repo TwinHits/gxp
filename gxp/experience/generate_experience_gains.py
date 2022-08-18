@@ -120,7 +120,7 @@ class GenerateExperienceGainsForRaid:
                     food = len(data.get("buffs").get("food"))
                     flask = len(data.get("buffs").get("flask"))
 
-                    tokens = { "encounter": encounter.get("name") }
+                    tokens = { "encounter": encounter.get("name") } # Ironforge Analyzer uses different encounter names :(
                     
                     flask_timestamp = encounter.get("timestamp") + 1 # Offset time a bit for nice history ordering
                     if flask:
@@ -198,7 +198,7 @@ class GenerateExperienceGainsForRaid:
             tokens = {
                 "encounter": encounter_name
             }
-            timestamp = self.timestamps_by_enounter_name.get(encounter_name)
+            timestamp = self.timestamps_by_enounter_name.get(encounter_name) + 3  # Offset time a bit for nice history ordering
 
             tanks = encounter.get("roles").get("tanks").get("characters")
             healers = encounter.get("roles").get("healers").get("characters")

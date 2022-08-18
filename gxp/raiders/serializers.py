@@ -1,4 +1,3 @@
-from ntpath import join
 from rest_framework import serializers
 
 from gxp.raiders.models import Alias, Alt, Raider
@@ -49,6 +48,7 @@ class RaiderSerializer(serializers.ModelSerializer):
     experience = serializers.SerializerMethodField()
     totalRaids = serializers.SerializerMethodField()
     totalWeeks = serializers.SerializerMethodField()
+    experienceMultipler = serializers.SerializerMethodField()
     alts = serializers.SerializerMethodField()
     aliases = AliasSerializer(many=True, required=False)
 
@@ -71,13 +71,16 @@ class RaiderSerializer(serializers.ModelSerializer):
     def get_totalWeeks(self, raider):
         return RaiderUtils.count_total_weeks_for_raider(raider)
 
+    def get_experienceMultipler(self, raider):
+        return RaiderUtils.calculate_experience_multipler_for_raider(raider)
+
     def get_alts(self, raider):
         alts = [RaiderSerializer(Raider.objects.get(pk=alt.alt.id)).data for alt in raider.alts.all()]
         return alts
 
     class Meta:
         model = Raider
-        fields = ['id', 'name', 'join_timestamp', 'alts', 'experience', 'totalRaids', 'totalWeeks', 'aliases']
+        fields = ['id', 'name', 'join_timestamp', 'alts', 'experience', 'totalRaids', 'totalWeeks', 'experienceMultipler', 'aliases']
 
     def create(self, validated_data):
 

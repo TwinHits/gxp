@@ -1,4 +1,3 @@
-from ast import alias
 from django.db.models import Sum
 
 from gxp.experience.models import ExperienceGain
@@ -16,7 +15,15 @@ class RaiderUtils:
         if not result:
             return 0
         else:
-            return result
+            return result * RaiderUtils.calculate_experience_multipler_for_raider(raider)
+
+    
+    def calculate_experience_multipler_for_raider(raider):
+        # (Current raids / total guild raids) + 1    
+        current_raids = RaiderUtils.count_total_raids_for_raider(raider) 
+        total_guild_raids = Raid.objects.all().count()
+        return (current_raids / total_guild_raids) + 1
+
 
 
     def count_total_raids_for_raider(raider):
