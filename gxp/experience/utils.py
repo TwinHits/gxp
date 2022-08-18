@@ -17,4 +17,8 @@ class ExperienceUtils:
         tokens["datetime"] = SharedUtils.format_datetime_as_date_and_time(
             SharedUtils.get_datetime_from_timestamp(tokens["timestamp"])
         )
-        return experience_gain.experienceEvent.template.format(**tokens)
+
+        try:
+            return experience_gain.experienceEvent.template.format(**tokens)
+        except KeyError:
+            return experience_gain.experienceEvent.template

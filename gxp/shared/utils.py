@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 class SharedUtils:
     def get_now_timestamp():
-        return time.time()
+        return time.time() * 1000
 
     def get_datetime_from_timestamp(timestamp):
         return datetime.fromtimestamp(timestamp / 1000)
