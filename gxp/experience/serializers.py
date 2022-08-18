@@ -11,13 +11,12 @@ class ExperienceEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperienceEvent
-        fields = ['id', 'description', 'value', 'key','template']
+        fields = ['id', 'description', 'value', 'template']
 
     def create(self, validated_data):
         return ExperienceEvent.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.key = validated_data.get('key', instance.key)
         instance.description = validated_data.get('description', instance.description)
         instance.value = validated_data.get('value', instance.value)
         instance.template = validated_data.get('template', instance.template)

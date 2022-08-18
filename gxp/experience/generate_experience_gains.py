@@ -13,14 +13,14 @@ class GenerateExperienceGainsForRaid:
     def __init__(self, raid):
         self.raid = raid
 
-        self.complete_raid_event_id = ExperienceEvent.objects.get(key="COMPLETE_RAID").id
-        self.boss_kill_event_id = ExperienceEvent.objects.get(key="BOSS_KILL").id
-        self.food_on_event_id = ExperienceEvent.objects.get(key="BOSS_KILL_FOOD").id
-        self.food_off_event_id = ExperienceEvent.objects.get(key="BOSS_KILL_NO_FOOD").id
-        self.flask_on_event_id = ExperienceEvent.objects.get(key="BOSS_KILL_FLASK").id
-        self.flask_off_event_id = ExperienceEvent.objects.get(key="BOSS_KILL_NO_FLASK").id
-        self.signed_up_accurately_event_id = ExperienceEvent.objects.get(key="SIGNED_UP_ACCURATELY").id
-        self.signed_up_inaccurately_event_id = ExperienceEvent.objects.get(key="SIGNED_UP_INACCURATELY").id
+        self.complete_raid_event_id = ExperienceEvent.objects.get(id="COMPLETE_RAID").id
+        self.boss_kill_event_id = ExperienceEvent.objects.get(id="BOSS_KILL").id
+        self.food_on_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_FOOD").id
+        self.food_off_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_NO_FOOD").id
+        self.flask_on_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_FLASK").id
+        self.flask_off_event_id = ExperienceEvent.objects.get(id="BOSS_KILL_NO_FLASK").id
+        self.signed_up_accurately_event_id = ExperienceEvent.objects.get(id="SIGNED_UP_ACCURATELY").id
+        self.signed_up_inaccurately_event_id = ExperienceEvent.objects.get(id="SIGNED_UP_INACCURATELY").id
         
         self.name_to_raider = {}
         for raider in self.raid.raiders.all():
