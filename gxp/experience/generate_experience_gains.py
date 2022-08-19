@@ -32,17 +32,24 @@ class GenerateExperienceGainsForRaid:
         self.mid_performer_event_id = "MID_PERFORMANCE"
         self.low_performer_event_id = "LOW_PERFORMANCE"
 
+        self.decay_per_boss_event_id = "DECAY_PER_BOSS"
+
         self.raiders_by_name = {}
         for raider in self.raid.raiders.all():
             self.raiders_by_name[raider.name] = raider
 
         self.timestamps_by_enounter_name = {}
 
+        self.corrected_encounter_names = {
+            "Terestrian Illhoof": "Terestian Illhoof",
+        }
+
     def generate_all(self):
         self.boss_kill_and_complete_raid_experience()
         self.flask_and_consumes_raid_experience()
         self.sign_ups_raid_experience()
         self.performance_experience()
+        self.decay_per_boss()
 
     def get_experienceEvent_id_for_parse_percent(self, parse_percent):
         if parse_percent <= 25:
@@ -53,6 +60,13 @@ class GenerateExperienceGainsForRaid:
             return self.high_performer_event_id
         elif parse_percent <= 100:
             return self.top_performer_event_id
+
+    def correct_encounter_name(self, encounter_name):
+        correct_encounter_name = self.corrected_encounter_names.get(encounter_name)
+        if correct_encounter_name:
+            return correct_encounter_name
+        else:
+            return encounter_name
 
     def boss_kill_and_complete_raid_experience(self):
 
@@ -263,7 +277,7 @@ class GenerateExperienceGainsForRaid:
         )
 
         for encounter in rankings:
-            encounter_name = encounter.get("encounter").get("name")
+            encounter_name = self.correct_encounter_name(encounter.get("encounter").get("name"))
             tokens = {"encounter": encounter_name}
             timestamp = self.timestamps_by_enounter_name.get(encounter_name)
             if timestamp:
@@ -285,3 +299,26 @@ class GenerateExperienceGainsForRaid:
                     timestamp=timestamp,
                     tokens=tokens,
                 )
+
+
+    def decay_per_boss(self):
+        all_raiders = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp)
+        for raider in all_raiders:
+            for encounter, timestamp in self.timestamps_by_enounter_name.items():
+                print(encounter)
+                print(timestamp)
+                tokens = {
+                    'encounter': encounter,
+                    'timestamp': timestamp + 4 # Offset time a bit for nice history ordering
+ 
+                }
+                ExperienceGainSerializer.create_experience_gain(
+                    self.decay_per_boss_event_id,
+                    raider.id,
+                    raid_id=self.raid.id,
+                    timestamp=tokens.get("timestamp"),
+                    tokens=tokens,
+                )
+
+            
+

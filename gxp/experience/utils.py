@@ -20,5 +20,6 @@ class ExperienceUtils:
 
         try:
             return experience_gain.experienceEvent.template.format(**tokens)
-        except KeyError:
+        except KeyError as error:
+            print(error)
             return experience_gain.experienceEvent.template
