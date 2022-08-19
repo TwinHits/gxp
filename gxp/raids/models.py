@@ -27,6 +27,7 @@ class Raid(models.Model):
     log = models.ForeignKey(
         Log, on_delete=models.CASCADE, related_name="raid", null=True
     )
+    encounters_completed = models.IntegerField()
 
     class Meta:
         db_table = "gxp_raids"

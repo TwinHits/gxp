@@ -67,10 +67,11 @@ class RaidSerializer(serializers.ModelSerializer):
     )
     timestamp = serializers.IntegerField(required=False)
     log = LogSerializer(required=False)
+    encounters_completed = serializers.IntegerField(required=False)
 
     class Meta:
         model = Raid
-        fields = ["id", "log", "optional", "raiders", "timestamp"]
+        fields = ["id", "log", "optional", "raiders", "timestamp", "encounters_completed"]
 
     def create(self, validated_data):
         raiders = []
@@ -97,7 +98,8 @@ class RaidSerializer(serializers.ModelSerializer):
                 if "zone" not in validated_data:
                     validated_data["zone"] = log.zone
 
-                raiders = WarcraftLogsInterface.get_raiders_by_report_id(logs_code)
+                raiders, encounters_completed = WarcraftLogsInterface.get_raiders_and_encounters_by_report_id(logs_code)
+                validated_data["encounters_completed"] = encounters_completed
             except Exception as err:
                 raise serializers.ValidationError(err)
 
