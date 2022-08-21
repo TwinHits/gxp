@@ -49,6 +49,7 @@ class RaiderSerializer(serializers.ModelSerializer):
     totalWeeks = serializers.SerializerMethodField()
     alts = serializers.SerializerMethodField()
     aliases = AliasSerializer(many=True, required=False)
+    active = serializers.BooleanField(required=False)
 
     def to_representation(self, raider):
         data = super().to_representation(raider)
@@ -72,10 +73,6 @@ class RaiderSerializer(serializers.ModelSerializer):
         if not RaiderUtils.is_valid_character_name(value):
             raise serializers.ValidationError(ValidationErrors.INVALID_CHARACTER_NAME)
 
-        existingName = Raider.objects.filter(name=value).first()
-        if existingName:
-            raise serializers.ValidationError(ValidationErrors.NAME_ALREADY_EXISTS)
-
         return value
 
     def get_totalWeeks(self, raider):
@@ -97,9 +94,13 @@ class RaiderSerializer(serializers.ModelSerializer):
             "alts",
             "totalWeeks",
             "aliases",
+            "active",
         ]
 
     def create(self, validated_data):
+        existingName = Raider.objects.filter(name=validated_data["name"]).first()
+        if existingName:
+            raise serializers.ValidationError(ValidationErrors.NAME_ALREADY_EXISTS)
 
         if not validated_data.get("join_timestamp"):
             validated_data["join_timestamp"] = SharedUtils.get_now_timestamp()
@@ -107,7 +108,7 @@ class RaiderSerializer(serializers.ModelSerializer):
         return Raider.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get("name", instance.name)
+        instance.active = validated_data.get("active", instance.active)
 
         instance.save()
         return instance

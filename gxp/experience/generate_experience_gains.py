@@ -333,6 +333,3 @@ class GenerateExperienceGainsForRaid:
                 tokens=tokens,
                 value=decay_experience_value
             )
-
-        
-
