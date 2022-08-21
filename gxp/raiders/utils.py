@@ -15,7 +15,7 @@ class RaiderUtils:
         gains = ExperienceGain.objects.filter(raider=raider.id, raid__optional=False)
         highest_experience_level_experience_required = ExperienceLevel.objects.last().experience_required
 
-        if experience_multipler == None:
+        if experience_multipler is None:
             experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider)
 
         experience = 0
@@ -31,7 +31,7 @@ class RaiderUtils:
 
     def calculate_experience_multipler_for_raider(raider, raider_raids=None):
         # (Current raids / total guild raids) + 1
-        if raider_raids == None:
+        if raider_raids is None:
             raider_raids = RaiderUtils.count_raids_for_raider(raider)
         total_guild_raids = Raid.objects.all().count()
         if total_guild_raids > 0:
@@ -40,7 +40,7 @@ class RaiderUtils:
             return 1
 
     def calculate_experience_level_for_raider(raider, experience=None):
-        if experience == None:
+        if experience is None:
             experience = RaiderUtils.calculate_experience_for_raider(raider)
 
         experience_level = ExperienceLevel.objects.filter(experience_required__lte=experience).last()
