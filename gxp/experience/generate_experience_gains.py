@@ -42,8 +42,10 @@ class GenerateExperienceGainsForRaid:
 
         self.corrected_encounter_names = {
             "Terestrian Illhoof": "Terestian Illhoof",
+            "Zul'jin": "Zul'Jin",
         }
 
+        self.raid_start_timestamp = None
         self.raid_end_timestamp = None
 
     def generate_all(self):
@@ -72,45 +74,48 @@ class GenerateExperienceGainsForRaid:
 
     def boss_kill_and_complete_raid_experience(self):
 
-        kill_logs = WarcraftLogsInterface.get_raid_kills_by_report_id(
+        report = WarcraftLogsInterface.get_raid_kills_by_report_id(
             self.raid.log.logsCode
         )
 
-        actors = kill_logs.get("masterData").get(
+        actors = report.get("masterData").get(
             "actors"
         )  # array of player name and data id
-        players_by_data_id = {actor.get("id"): actor.get("name") for actor in actors}
+        names_by_data_id = {actor.get("id"): actor.get("name") for actor in actors}
         kill_count_by_name = {}
 
-        kills = kill_logs.get("fights")  # array of fight name and player data ids
-        raid_start_timestamp = kill_logs.get("startTime")
-        self.raid_end_timestamp = kill_logs.get("endTime")
-        for kill in kills:
-            kill_timestamp = raid_start_timestamp + kill.get("endTime")
-            encounter_name = kill.get("name")
-            self.timestamps_by_enounter_name[encounter_name] = kill_timestamp
+        self.raid_start_timestamp = report.get("startTime")
+        self.raid_end_timestamp = report.get("endTime")
+
+        # Get map of encounters completed by name using an array of tokens' length to keep count
+        encounter_logs = report.get("fights")  # array of fight name and player data ids
+        for encounter_log in encounter_logs:
+            enounter_end_timestamp = self.raid_start_timestamp + encounter_log.get("endTime")
+            encounter_name = encounter_log.get("name")
+            self.timestamps_by_enounter_name[encounter_name] = enounter_end_timestamp
             tokens = {
                 "encounter": encounter_name,
-                "kill_timestamp": kill_timestamp,  # endtime is ms since report started
+                "enounter_end_timestamp": enounter_end_timestamp,  # endtime is ms since report started
             }
-            for data_id in kill.get("friendlyPlayers"):
-                name = players_by_data_id[data_id]
+            for data_id in encounter_log.get("friendlyPlayers"):
+                name = names_by_data_id[data_id]
                 if not kill_count_by_name.get(name):
                     kill_count_by_name[name] = []
                 kill_count_by_name[name].append(tokens)
 
-        number_of_kills = len(kills)
-        for name, participating_kills in kill_count_by_name.items():
+        # Create exp for each encoutners completed, implicitly leaving out encounters they did not participate in
+        number_of_encounters = len(encounter_logs)
+        for name, participating_encounters in kill_count_by_name.items():
             raider = self.raiders_by_name[name]
-            for tokens in reversed(participating_kills):
+            for tokens in reversed(participating_encounters):
                 ExperienceGainSerializer.create_experience_gain(
                     self.boss_kill_event_id,
                     raider.id,
                     raid_id=self.raid.id,
-                    timestamp=tokens.get("kill_timestamp"),
+                    timestamp=tokens.get("enounter_end_timestamp"),
                     tokens=tokens,
                 )
-            if len(participating_kills) >= number_of_kills:
+            if len(participating_encounters) >= number_of_encounters:
                 complete_raid_tokens = {
                     "zone": self.raid.zone,
                 }
@@ -213,6 +218,7 @@ class GenerateExperienceGainsForRaid:
             tokens = {"zone": self.raid.zone}
 
             if response.get("status") == "failed":
+                print(f"Failed to get event details from event id {self.raid.log.raidHelperEventId} for logs code {self.raid.log.logsCode} .")
                 print(response)
                 return
 
@@ -237,8 +243,8 @@ class GenerateExperienceGainsForRaid:
                 """
 
                 # is this name in the attending raiders?
+                next = False
                 for raider in self.raiders_by_name.values():
-                    next = False
                     if RaiderUtils.is_name_for_raider(name, raider):
                         # If signed up at all and in raid, then +
                         ExperienceGainSerializer.create_experience_gain(
@@ -265,7 +271,6 @@ class GenerateExperienceGainsForRaid:
                         )
                         next = True
 
-                # The harder stuff like late, tentative, bench, etc
                 if not next:
                     raider = RaiderUtils.get_raider_for_name(name)
                     if not raider:
@@ -278,12 +283,19 @@ class GenerateExperienceGainsForRaid:
             .get("data")
         )
 
+        if len(rankings) == 0:
+            print(f"WARNING: {self.raid.log.logsCode} has no parses.")
+
         for encounter in rankings:
             encounter_name = self.correct_encounter_name(encounter.get("encounter").get("name"))
             tokens = {"encounter": encounter_name}
             timestamp = self.timestamps_by_enounter_name.get(encounter_name)
             if timestamp:
                 timestamp = timestamp + 3  # Offset time a bit for nice history ordering
+            else:
+                # This parse is not for an encounter, so skip
+                print(f"WARNING {self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings.")
+                continue
 
             tanks = encounter.get("roles").get("tanks").get("characters")
             healers = encounter.get("roles").get("healers").get("characters")

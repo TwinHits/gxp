@@ -1,3 +1,4 @@
+from typing import Set
 from gxp.raiders.models import Raider
 from gxp.raiders.serializers import RaiderSerializer
 
@@ -21,9 +22,21 @@ class WarcraftLogsUtils:
 
     def get_or_create_raiders_from_report(report):
         timestamp = WarcraftLogsUtils.get_start_timestamp_from_report(report)
+
+        # array of player name and data id
+        actors = report.get("masterData").get("actors")
+        names_by_data_id = {actor.get("id"): actor.get("name") for actor in actors}
+
+        # For each enounter, add participating names to set
+        participating_names_set = set()
+        encounter_logs = report.get("fights")  # array of fight name and player data ids
+        for encounter_log in encounter_logs:
+            for data_id in encounter_log.get("friendlyPlayers"):
+                name = names_by_data_id[data_id]
+                participating_names_set.add(name)
+
         raiders = []
-        for character in report.get("rankedCharacters"):
-            name = character.get("name")
+        for name in participating_names_set:
             try:
                 raider = Raider.objects.get(name=name)
                 raiders.append(raider)
