@@ -44,6 +44,8 @@ class GenerateExperienceGainsForRaid:
             "Terestrian Illhoof": "Terestian Illhoof",
         }
 
+        self.raid_end_timestamp = None
+
     def generate_all(self):
         self.boss_kill_and_complete_raid_experience()
         self.flask_and_consumes_raid_experience()
@@ -82,7 +84,7 @@ class GenerateExperienceGainsForRaid:
 
         kills = kill_logs.get("fights")  # array of fight name and player data ids
         raid_start_timestamp = kill_logs.get("startTime")
-        raid_end_timestamp = kill_logs.get("endTime")
+        self.raid_end_timestamp = kill_logs.get("endTime")
         for kill in kills:
             kill_timestamp = raid_start_timestamp + kill.get("endTime")
             encounter_name = kill.get("name")
@@ -116,7 +118,7 @@ class GenerateExperienceGainsForRaid:
                     self.complete_raid_event_id,
                     raider.id,
                     raid_id=self.raid.id,
-                    timestamp=raid_end_timestamp,
+                    timestamp=self.raid_end_timestamp,
                     tokens=complete_raid_tokens,
                 )
 
@@ -302,21 +304,23 @@ class GenerateExperienceGainsForRaid:
 
 
     def decay_per_boss(self):
+        encounters_count = len(self.timestamps_by_enounter_name)
+        tokens = { "encounters_count": encounters_count,}
+
+        decay_experience_event = ExperienceEvent.objects.get(pk=self.decay_per_boss_event_id)
+        decay_experience_value = encounters_count * decay_experience_event.value
+        timestamp = self.raid_end_timestamp + 1 # offset for nice history ordering
+
         all_raiders = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp)
         for raider in all_raiders:
-            for encounter, timestamp in self.timestamps_by_enounter_name.items():
-                tokens = {
-                    'encounter': encounter,
-                    'timestamp': timestamp + 4 # Offset time a bit for nice history ordering
- 
-                }
-                ExperienceGainSerializer.create_experience_gain(
-                    self.decay_per_boss_event_id,
-                    raider.id,
-                    raid_id=self.raid.id,
-                    timestamp=tokens.get("timestamp"),
-                    tokens=tokens,
-                )
+            ExperienceGainSerializer.create_experience_gain(
+                self.decay_per_boss_event_id,
+                raider.id,
+                raid_id=self.raid.id,
+                timestamp=timestamp,
+                tokens=tokens,
+                value=decay_experience_value
+            )
 
-            
+        
 
