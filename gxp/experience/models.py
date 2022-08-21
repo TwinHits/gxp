@@ -43,4 +43,4 @@ class ExperienceLevel(models.Model):
 
     class Meta:
         db_table = "gxp_experience_levels"
-        ordering = ["-experience_required"]
+        ordering = ["experience_required"]
