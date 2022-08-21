@@ -62,9 +62,6 @@ class RaiderSerializer(serializers.ModelSerializer):
 
         return value
 
-    def get_experience(self, raider):
-        return RaiderUtils.calculate_experience_for_raider(raider)
-
     def get_totalRaids(self, raider):
         return RaiderUtils.count_total_raids_for_raider(raider)
 
@@ -73,6 +70,9 @@ class RaiderSerializer(serializers.ModelSerializer):
 
     def get_experienceMultipler(self, raider):
         return RaiderUtils.calculate_experience_multipler_for_raider(raider)
+
+    def get_experience(self, raider):
+        return RaiderUtils.calculate_experience_for_raider(raider)
 
     def get_alts(self, raider):
         alts = [

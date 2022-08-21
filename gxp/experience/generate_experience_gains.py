@@ -305,8 +305,6 @@ class GenerateExperienceGainsForRaid:
         all_raiders = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp)
         for raider in all_raiders:
             for encounter, timestamp in self.timestamps_by_enounter_name.items():
-                print(encounter)
-                print(timestamp)
                 tokens = {
                     'encounter': encounter,
                     'timestamp': timestamp + 4 # Offset time a bit for nice history ordering

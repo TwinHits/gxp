@@ -1,4 +1,6 @@
+from audioop import mul
 from django.db.models import Sum
+from gxp import experience
 
 from gxp.experience.models import ExperienceGain
 from gxp.raids.models import Raid, Raider
@@ -10,16 +12,22 @@ class RaiderUtils:
         return len(name) >= 2 and len(name) <= 12
 
     def calculate_experience_for_raider(raider):
-        result = ExperienceGain.objects.filter(
+        gains = ExperienceGain.objects.filter(
             raider=raider.id, raid__optional=False
-        ).aggregate(Sum("experienceEvent__value"))
-        result = result["experienceEvent__value__sum"]
-        if not result:
-            return 0
-        else:
-            return result * RaiderUtils.calculate_experience_multipler_for_raider(
-                raider
-            )
+        )
+        multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider)
+        multipler = 1
+        experience = 0
+        for gain in gains:
+            result = experience + (gain.experienceEvent.value * multipler)
+            if result < 0:
+                experience = 0
+            elif result > 100:
+                experience = 100
+            else: 
+                experience += (gain.experienceEvent.value * multipler)
+        return experience 
+
 
     def calculate_experience_multipler_for_raider(raider):
         # (Current raids / total guild raids) + 1
@@ -47,8 +55,8 @@ class RaiderUtils:
 
         return None
 
+    # Check if the name is the raider, an alt, or an alias
     def is_name_for_raider(name, raider):
-        # Check if the name is the raider, an alt, or an alias
 
         # Is the name the raider
         if name == raider.name:

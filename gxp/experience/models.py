@@ -33,7 +33,7 @@ class ExperienceGain(models.Model):
 
     class Meta:
         db_table = "gxp_experience_gains"
-        ordering = ["-timestamp"]
+        ordering = ["timestamp"]
 
 
 class ExperienceLevel(models.Model):
