@@ -1,4 +1,3 @@
-from statistics import mode
 import uuid
 from django.db import models
 
@@ -30,6 +29,14 @@ class ExperienceGain(models.Model):
     )
     timestamp = models.IntegerField()
     tokens = models.JSONField(default=dict)
+    value = models.IntegerField(null=True)
+
+    @property
+    def experience(self):
+        if self.value is not None:
+            return self.value
+        elif self.experienceEvent is not None:
+            return self.experienceEvent.value
 
     class Meta:
         db_table = "gxp_experience_gains"

@@ -35,10 +35,16 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
         queryset=Raid.objects.all(), required=False
     )
     description = serializers.SerializerMethodField()
+    value = serializers.IntegerField(required=False)
 
     def get_description(self, experience_gain):
         description = ExperienceUtils.get_description_from_template(experience_gain)
         return description
+
+    def to_representation(self, instance):
+        data = super(ExperienceGainSerializer, self).to_representation(instance)
+        data.update({"value": instance.experience})
+        return data
 
     class Meta:
         model = ExperienceGain
@@ -50,6 +56,7 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
             "tokens",
             "description",
             "raid",
+            "value",
         ]
 
     def create(self, validated_data):
@@ -63,13 +70,14 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
             "experienceEvent", instance.experienceEvent
         )
         instance.raider = validated_data.get("raider", instance.raider)
+        instance.value = validated_data.get("value", instance.value)
 
         instance.save()
         return instance
 
     @staticmethod
     def create_experience_gain(
-        experience_event_id, raider_id, raid_id=None, timestamp=None, tokens=None
+        experience_event_id, raider_id, raid_id=None, timestamp=None, tokens=None, value=None
     ):
         data = {}
 
@@ -81,6 +89,9 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
             data["tokens"] = tokens
         if timestamp:
             data["timestamp"] = timestamp
+        if value is not None:
+            data["value"] = value
+
 
         experience_gain_serializer = ExperienceGainSerializer(data=data)
         experience_gain_serializer.is_valid(raise_exception=True)

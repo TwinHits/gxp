@@ -1,6 +1,4 @@
-from audioop import mul
-from django.db.models import Sum
-from gxp import experience
+from django.db.models import Q
 
 from gxp.experience.models import ExperienceGain, ExperienceLevel
 from gxp.raids.models import Raid, Raider
@@ -12,7 +10,7 @@ class RaiderUtils:
         return len(name) >= 2 and len(name) <= 12
 
     def calculate_experience_for_raider(raider, experience_multipler=None):
-        gains = ExperienceGain.objects.filter(raider=raider.id, raid__optional=False)
+        gains = ExperienceGain.objects.filter(Q(raid__isnull=True) | Q(raid__optional=False), raider=raider.id)
         highest_experience_level_experience_required = ExperienceLevel.objects.last().experience_required
 
         if experience_multipler is None:
@@ -20,7 +18,7 @@ class RaiderUtils:
 
         experience = 0
         for gain in gains:
-            new_experience = experience + (gain.experienceEvent.value * experience_multipler)
+            new_experience = experience + (gain.experience * experience_multipler)
             if new_experience < 0:
                 experience = 0
             elif new_experience > highest_experience_level_experience_required:

@@ -1,4 +1,3 @@
-from ntpath import join
 from gxp.raiders.models import Raider
 from gxp.raiders.serializers import RaiderSerializer
 

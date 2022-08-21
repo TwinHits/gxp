@@ -47,17 +47,26 @@ class RaiderSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     join_timestamp = serializers.IntegerField(required=False)
     totalWeeks = serializers.SerializerMethodField()
-    totalRaids = serializers.SerializerMethodField()
-    experienceMultipler = serializers.SerializerMethodField()
-    experience = serializers.SerializerMethodField()
-    experienceLevel = serializers.SerializerMethodField()
     alts = serializers.SerializerMethodField()
     aliases = AliasSerializer(many=True, required=False)
 
-    # Store some data to make the serializer method fields more efficient
-    _total_raids = 0
-    _experience_multipler = 0
-    _experience = 0
+    def to_representation(self, raider):
+        data = super().to_representation(raider)
+
+        total_raids = RaiderUtils.count_raids_for_raider(raider)
+        experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider, total_raids)
+        experience = RaiderUtils.calculate_experience_for_raider(raider, experience_multipler)
+        level = ExperienceLevelSerializer(RaiderUtils.calculate_experience_level_for_raider(raider, experience)).data
+
+        data.update({
+            "totalRaids": total_raids,
+            "experienceMultipler": experience_multipler,
+            "experience": experience,
+            "experienceLevel": level
+        })
+
+        return data
+  
 
     def validate_name(self, value):
         if not RaiderUtils.is_valid_character_name(value):
@@ -69,23 +78,8 @@ class RaiderSerializer(serializers.ModelSerializer):
 
         return value
 
-    def get_totalRaids(self, raider):
-        self._total_raids = RaiderUtils.count_raids_for_raider(raider)
-        return self._total_raids
-
     def get_totalWeeks(self, raider):
         return RaiderUtils.count_total_weeks_for_raider(raider)
-
-    def get_experienceMultipler(self, raider):
-        self._experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider, self._total_raids)
-        return self._experience_multipler
-
-    def get_experience(self, raider):
-        self._experience = RaiderUtils.calculate_experience_for_raider(raider, self._experience_multipler)
-        return self._experience
-
-    def get_experienceLevel(self, raider):
-        return ExperienceLevelSerializer(RaiderUtils.calculate_experience_level_for_raider(raider, self._experience)).data
 
     def get_alts(self, raider):
         alts = [
@@ -101,11 +95,7 @@ class RaiderSerializer(serializers.ModelSerializer):
             "name",
             "join_timestamp",
             "alts",
-            "experience",
-            "totalRaids",
             "totalWeeks",
-            "experienceMultipler",
-            "experienceLevel",
             "aliases",
         ]
 
