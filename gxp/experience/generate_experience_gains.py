@@ -321,7 +321,7 @@ class GenerateExperienceGainsForRaid:
 
         decay_experience_event = ExperienceEvent.objects.get(pk=self.decay_per_boss_event_id)
         decay_experience_value = encounters_count * decay_experience_event.value
-        timestamp = self.raid_end_timestamp + 1 # offset for nice history ordering
+        timestamp = self.raid_start_timestamp - 1 # This should be calculated early so raiders don't backslide at end of raid
 
         all_raiders = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp)
         for raider in all_raiders:

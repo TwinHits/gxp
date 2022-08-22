@@ -1,3 +1,4 @@
+from typing import Optional
 from django.db.models import Q
 
 from gxp.experience.models import ExperienceGain, ExperienceLevel
@@ -31,7 +32,7 @@ class RaiderUtils:
         # (Current raids / total guild raids) + 1
         if raider_raids is None:
             raider_raids = RaiderUtils.count_raids_for_raider(raider)
-        total_guild_raids = Raid.objects.all().count()
+        total_guild_raids = Raid.objects.filter(optional=False).count()
         if total_guild_raids > 0:
             return (raider_raids / total_guild_raids) + 1
         else: 
@@ -45,7 +46,7 @@ class RaiderUtils:
         return experience_level
 
     def count_raids_for_raider(raider):
-        result = Raid.objects.filter(raiders=raider.id).count()
+        result = Raid.objects.filter(raiders=raider.id, optional=False).count()
         return result
 
     def count_total_weeks_for_raider(raider):
