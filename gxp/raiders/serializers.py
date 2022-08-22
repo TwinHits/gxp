@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from gxp.experience.serializers import ExperienceLevelSerializer
 
-from gxp.raiders.models import Alias, Alt, Raider
+from gxp.raiders.models import Alias, Alt, Raider, Rename
 
 from gxp.raids.constants import ValidationErrors
 from gxp.raiders.utils import RaiderUtils
@@ -109,6 +109,16 @@ class RaiderSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.active = validated_data.get("active", instance.active)
+        name = validated_data.get("name", instance.name)
+        if name != instance.name:
+            if Raider.objects.filter(name=name).exists():
+                raise serializers.ValidationError(ValidationErrors.NAME_ALREADY_EXISTS)
+
+            Rename.objects.create(**{
+                "raider": instance,
+                "renamed_from": instance.name,
+            })
+            instance.name = name
 
         instance.save()
         return instance

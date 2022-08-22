@@ -34,10 +34,6 @@ class GenerateExperienceGainsForRaid:
 
         self.decay_per_boss_event_id = "DECAY_PER_BOSS"
 
-        self.raiders_by_name = {}
-        for raider in self.raid.raiders.all():
-            self.raiders_by_name[raider.name] = raider
-
         self.timestamps_by_enounter_name = {}
 
         self.corrected_encounter_names = {
@@ -103,10 +99,10 @@ class GenerateExperienceGainsForRaid:
                     kill_count_by_name[name] = []
                 kill_count_by_name[name].append(tokens)
 
-        # Create exp for each encoutners completed, implicitly leaving out encounters they did not participate in
+        # Create exp for each encounter completed, implicitly leaving out encounters they did not participate in
         number_of_encounters = len(encounter_logs)
         for name, participating_encounters in kill_count_by_name.items():
-            raider = self.raiders_by_name[name]
+            raider = RaiderUtils.get_raider_for_name(name)
             for tokens in reversed(participating_encounters):
                 ExperienceGainSerializer.create_experience_gain(
                     self.boss_kill_event_id,
@@ -159,7 +155,7 @@ class GenerateExperienceGainsForRaid:
             if encounter:  # only for fight ids we want want from above
                 for data in consumes.get("data"):
                     raider_name = data.get("actor").get("name")
-                    raider = self.raiders_by_name[raider_name]
+                    raider = RaiderUtils.get_raider_for_name(raider_name)
                     food = len(data.get("buffs").get("food"))
                     flask = len(data.get("buffs").get("flask"))
 
@@ -244,7 +240,7 @@ class GenerateExperienceGainsForRaid:
 
                 # is this name in the attending raiders?
                 next = False
-                for raider in self.raiders_by_name.values():
+                for raider in self.raid.raiders.all():
                     if RaiderUtils.is_name_for_raider(name, raider):
                         # If signed up at all and in raid, then +
                         ExperienceGainSerializer.create_experience_gain(
@@ -303,7 +299,7 @@ class GenerateExperienceGainsForRaid:
             ranking_raiders = tanks + healers + dps
 
             for ranking_raider in ranking_raiders:
-                raider = self.raiders_by_name[ranking_raider.get("name")]
+                raider = RaiderUtils.get_raider_for_name(ranking_raider.get("name"))
                 parse_percent = ranking_raider.get("bracketPercent")
                 event_id = self.get_experienceEvent_id_for_parse_percent(parse_percent)
                 ExperienceGainSerializer.create_experience_gain(

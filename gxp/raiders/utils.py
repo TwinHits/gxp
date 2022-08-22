@@ -1,8 +1,10 @@
+from sqlite3 import Timestamp
 from typing import Optional
 from django.db.models import Q
 
 from gxp.experience.models import ExperienceGain, ExperienceLevel
-from gxp.raids.models import Raid, Raider
+from gxp.raids.models import Raid
+from gxp.raiders.models import Raider, Rename
 from gxp.shared.utils import SharedUtils
 
 
@@ -53,9 +55,16 @@ class RaiderUtils:
         return SharedUtils.get_weeks_since_timestamp(raider.join_timestamp)
 
     def get_raider_for_name(name):
+        if name is None:
+            return None
+
         try:
             return Raider.objects.get(name=name)
         except Raider.DoesNotExist:
+            filter = Rename.objects.filter(renamed_from=name)
+            if filter.exists():
+                return filter.first().raider
+            
             filter = Raider.objects.filter(aliases__name=name)
             if filter.exists():
                 return filter.first()
@@ -68,12 +77,19 @@ class RaiderUtils:
         # Is the name the raider
         if name == raider.name:
             return True
+        
+        # Is the name an old name
+        renames = [rename for rename in raider.renames.all() if rename.renamed_from == name]
+        if len(renames):
+            return True
 
-        # is the name an alt
+        # Is the name an alt
         alts = [alt for alt in raider.alts.all() if alt.alt.name == name]
         if len(alts):
             return True
 
+
+        # Is the name an alias
         aliases = [alias for alias in raider.aliases.all() if alias.name == name]
         if len(aliases):
             return True

@@ -9,7 +9,7 @@ class ExperienceEvent(models.Model):
     id = models.CharField(primary_key=True, max_length=255)
     description = models.CharField(max_length=255, null=False)
     template = models.CharField(max_length=255)
-    value = models.IntegerField()
+    value = models.FloatField(null=True)
 
     class Meta:
         db_table = "gxp_experience_events"
@@ -29,7 +29,7 @@ class ExperienceGain(models.Model):
     )
     timestamp = models.IntegerField()
     tokens = models.JSONField(default=dict)
-    value = models.IntegerField(null=True)
+    value = models.FloatField(null=True)
 
     @property
     def experience(self):
