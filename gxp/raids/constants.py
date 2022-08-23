@@ -10,3 +10,5 @@ class ValidationErrors:
         "A log with this warcraft logs id already exists."
     )
     LOG_INACTIVE = "This log is inactive and cannot be used to create a raid."
+    RAIDER_DOES_NOT_EXIST = "This raider does not exist."
+    RAIDER_IS_AN_ALT = "This raider is an alt."

@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from gxp.quickstart.views import UserViewSet, GroupViewSet
 from gxp.raids.views import LogsViewSet, RaidsViewSet
-from gxp.raiders.views import AliasesViewSet, AltsViewSet, RaidersViewSet
+from gxp.raiders.views import AliasesViewSet, RaidersViewSet
 from gxp.experience.views import (
     ExperienceEventsViewSet,
     ExperienceGainsViewSet,
@@ -17,7 +17,6 @@ router.register(r"groups", GroupViewSet)
 router.register(r"raids", RaidsViewSet)
 router.register(r"logs", LogsViewSet)
 
-router.register(r"alts", AltsViewSet)
 router.register(r"raiders", RaidersViewSet)
 router.register(r"aliases", AliasesViewSet)
 

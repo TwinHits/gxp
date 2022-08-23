@@ -2,8 +2,8 @@ import json
 
 from rest_framework import viewsets
 
-from gxp.raiders.models import Alias, Raider, Alt
-from gxp.raiders.serializers import RaiderSerializer, AltSerializer, AliasSerializer
+from gxp.raiders.models import Alias, Raider
+from gxp.raiders.serializers import RaiderSerializer, AliasSerializer
 
 
 class RaidersViewSet(viewsets.ModelViewSet):
@@ -19,17 +19,6 @@ class RaidersViewSet(viewsets.ModelViewSet):
         name = self.request.query_params.get("name")
         if name is not None:
             self.queryset = self.queryset.filter(name=name)
-
-        return self.queryset
-
-class AltsViewSet(viewsets.ModelViewSet):
-    queryset = Alt.objects.all()
-    serializer_class = AltSerializer
-
-    def get_queryset(self):
-        main = self.request.query_params.get("main")
-        if main is not None:
-            self.queryset = self.queryset.filter(main=main)
 
         return self.queryset
 

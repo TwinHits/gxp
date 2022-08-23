@@ -1,29 +1,11 @@
 from rest_framework import serializers
 from gxp.experience.serializers import ExperienceLevelSerializer
 
-from gxp.raiders.models import Alias, Alt, Raider, Rename
+from gxp.raiders.models import Alias, Raider, Rename
 
 from gxp.raids.constants import ValidationErrors
 from gxp.raiders.utils import RaiderUtils
 from gxp.shared.utils import SharedUtils
-
-
-class AltSerializer(serializers.ModelSerializer):
-    main = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
-    alt = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
-
-    class Meta:
-        model = Alt
-        fields = ["id", "main", "alt"]
-
-    def create(self, validated_data):
-        return Alt.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-
-        instance.save()
-        return instance
-
 
 class AliasSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
@@ -50,19 +32,18 @@ class RaiderSerializer(serializers.ModelSerializer):
     alts = serializers.SerializerMethodField()
     aliases = AliasSerializer(many=True, required=False)
     active = serializers.BooleanField(required=False)
+    main = serializers.PrimaryKeyRelatedField(required=False,  queryset=Raider.objects.all())
 
     def to_representation(self, raider):
         data = super().to_representation(raider)
 
         total_raids = RaiderUtils.count_raids_for_raider(raider)
         experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider, total_raids)
-        experience = RaiderUtils.calculate_experience_for_raider(raider, experience_multipler)
-        level = ExperienceLevelSerializer(RaiderUtils.calculate_experience_level_for_raider(raider, experience)).data
+        level = ExperienceLevelSerializer(RaiderUtils.calculate_experience_level_for_raider(raider)).data
 
         data.update({
             "totalRaids": total_raids,
             "experienceMultipler": experience_multipler,
-            "experience": experience,
             "experienceLevel": level
         })
 
@@ -79,11 +60,7 @@ class RaiderSerializer(serializers.ModelSerializer):
         return RaiderUtils.count_total_weeks_for_raider(raider)
 
     def get_alts(self, raider):
-        alts = [
-            RaiderSerializer(Raider.objects.get(pk=alt.alt.id)).data
-            for alt in raider.alts.all()
-        ]
-        return alts
+        return [alt.id for alt in raider.alts if raider.alts]
 
     class Meta:
         model = Raider
@@ -91,8 +68,10 @@ class RaiderSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "join_timestamp",
-            "alts",
             "totalWeeks",
+            "experience",
+            "main",
+            "alts",
             "aliases",
             "active",
         ]
@@ -109,6 +88,7 @@ class RaiderSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.active = validated_data.get("active", instance.active)
+
         name = validated_data.get("name", instance.name)
         if name != instance.name:
             if Raider.objects.filter(name=name).exists():
@@ -119,6 +99,16 @@ class RaiderSerializer(serializers.ModelSerializer):
                 "renamed_from": instance.name,
             })
             instance.name = name
+
+        new_main = validated_data.get("main", instance.main)
+        if new_main != instance.main:
+            if not new_main:
+                raise serializers.ValidationError(ValidationErrors.RAIDER_DOES_NOT_EXIST)
+            
+            if new_main.isAlt or instance.isAlt:
+                raise serializers.ValidationError(ValidationErrors.RAIDER_IS_AN_ALT)
+            
+            instance.main = new_main
 
         instance.save()
         return instance

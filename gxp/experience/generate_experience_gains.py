@@ -1,5 +1,7 @@
+from django.db.models import Q
+
 from gxp.raiders.models import Raider
-from gxp.experience.models import ExperienceEvent
+from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
 
 from gxp.experience.serializers import ExperienceGainSerializer
 
@@ -50,6 +52,7 @@ class GenerateExperienceGainsForRaid:
         self.sign_ups_raid_experience()
         self.performance_experience()
         self.decay_per_boss()
+        self.calculate_experience_for_raiders()
 
     def get_experienceEvent_id_for_parse_percent(self, parse_percent):
         if parse_percent <= 25:
@@ -319,7 +322,7 @@ class GenerateExperienceGainsForRaid:
         decay_experience_value = encounters_count * decay_experience_event.value
         timestamp = self.raid_start_timestamp - 1 # This should be calculated early so raiders don't backslide at end of raid
 
-        all_raiders = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp)
+        all_raiders = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp, main=None)
         for raider in all_raiders:
             ExperienceGainSerializer.create_experience_gain(
                 self.decay_per_boss_event_id,
@@ -329,3 +332,26 @@ class GenerateExperienceGainsForRaid:
                 tokens=tokens,
                 value=decay_experience_value
             )
+
+
+    def calculate_experience_for_raiders(self):
+        for raider in Raider.objects.all():
+            raider_and_alts = list(raider.alts)
+            raider_and_alts.append(raider)
+            gains = ExperienceGain.objects.filter(Q(raid__isnull=True) | Q(raid__optional=False), raider__in=raider_and_alts)
+            highest_experience_level_experience_required = ExperienceLevel.objects.last().experience_required
+            experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider)
+
+            experience = 0
+            for gain in gains:
+                new_experience = experience + (gain.experience * experience_multipler)
+                if new_experience < 0:
+                    experience = 0
+                elif new_experience > highest_experience_level_experience_required:
+                    experience = highest_experience_level_experience_required
+                else: 
+                    experience = new_experience
+
+            raider.experience = experience
+            raider.save()
+            

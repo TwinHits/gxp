@@ -1,8 +1,5 @@
-from sqlite3 import Timestamp
-from typing import Optional
-from django.db.models import Q
 
-from gxp.experience.models import ExperienceGain, ExperienceLevel
+from gxp.experience.models import ExperienceLevel
 from gxp.raids.models import Raid
 from gxp.raiders.models import Raider, Rename
 from gxp.shared.utils import SharedUtils
@@ -11,24 +8,6 @@ from gxp.shared.utils import SharedUtils
 class RaiderUtils:
     def is_valid_character_name(name):
         return len(name) >= 2 and len(name) <= 12
-
-    def calculate_experience_for_raider(raider, experience_multipler=None):
-        gains = ExperienceGain.objects.filter(Q(raid__isnull=True) | Q(raid__optional=False), raider=raider.id)
-        highest_experience_level_experience_required = ExperienceLevel.objects.last().experience_required
-
-        if experience_multipler is None:
-            experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider)
-
-        experience = 0
-        for gain in gains:
-            new_experience = experience + (gain.experience * experience_multipler)
-            if new_experience < 0:
-                experience = 0
-            elif new_experience > highest_experience_level_experience_required:
-                experience = highest_experience_level_experience_required
-            else: 
-                experience = new_experience
-        return experience 
 
     def calculate_experience_multipler_for_raider(raider, raider_raids=None):
         # (Current raids / total guild raids) + 1
@@ -40,11 +19,8 @@ class RaiderUtils:
         else: 
             return 1
 
-    def calculate_experience_level_for_raider(raider, experience=None):
-        if experience is None:
-            experience = RaiderUtils.calculate_experience_for_raider(raider)
-
-        experience_level = ExperienceLevel.objects.filter(experience_required__lte=experience).last()
+    def calculate_experience_level_for_raider(raider):
+        experience_level = ExperienceLevel.objects.filter(experience_required__lte=raider.experience).last()
         return experience_level
 
     def count_raids_for_raider(raider):
@@ -71,7 +47,7 @@ class RaiderUtils:
 
         return None
 
-    # Check if the name is the raider, an alt, or an alias
+    # Check if the name is the raider, an , or an alias
     def is_name_for_raider(name, raider):
 
         # Is the name the raider
@@ -84,7 +60,7 @@ class RaiderUtils:
             return True
 
         # Is the name an alt
-        alts = [alt for alt in raider.alts.all() if alt.alt.name == name]
+        alts = [alt for alt in raider.alts if alt.name == name]
         if len(alts):
             return True
 
