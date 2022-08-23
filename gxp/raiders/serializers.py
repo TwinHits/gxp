@@ -32,7 +32,7 @@ class RaiderSerializer(serializers.ModelSerializer):
     alts = serializers.SerializerMethodField()
     aliases = AliasSerializer(many=True, required=False)
     active = serializers.BooleanField(required=False)
-    main = serializers.PrimaryKeyRelatedField(required=False,  queryset=Raider.objects.all())
+    main = serializers.PrimaryKeyRelatedField(required=False,  queryset=Raider.objects.all(), allow_null=True, default=None)
 
     def to_representation(self, raider):
         data = super().to_representation(raider)
