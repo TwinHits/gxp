@@ -102,10 +102,8 @@ class RaiderSerializer(serializers.ModelSerializer):
 
         new_main = validated_data.get("main", instance.main)
         if new_main != instance.main:
-            if not new_main:
-                raise serializers.ValidationError(ValidationErrors.RAIDER_DOES_NOT_EXIST)
             
-            if new_main.isAlt or instance.isAlt:
+            if new_main and (new_main.isAlt or instance.isAlt):
                 raise serializers.ValidationError(ValidationErrors.RAIDER_IS_AN_ALT)
             
             instance.main = new_main
