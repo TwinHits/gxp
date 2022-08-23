@@ -32,21 +32,29 @@ class RaiderUtils:
         return SharedUtils.get_weeks_since_timestamp(raider.join_timestamp)
 
     def get_raider_for_name(name):
+        # Get the main raider for this name
         if name is None:
             return None
 
+        raider = None
         try:
-            return Raider.objects.get(name=name)
+            raider = Raider.objects.get(name=name)
         except Raider.DoesNotExist:
             filter = Rename.objects.filter(renamed_from=name)
             if filter.exists():
-                return filter.first().raider
+                raider = filter.first().raider
 
             filter = Raider.objects.filter(aliases__name=name)
             if filter.exists():
-                return filter.first()
+                raider = filter.first()
 
-        return None
+        if raider is None:
+            return None
+        elif not raider.isMain:
+            return raider.main
+        else:
+            return raider
+
 
     # Check if the name is the raider, an , or an alias
     def is_name_for_raider(name, raider):
@@ -62,14 +70,14 @@ class RaiderUtils:
         if len(renames):
             return True
 
-        # Is the name an alt
-        alts = [alt for alt in raider.alts if alt.name == name]
-        if len(alts):
-            return True
-
         # Is the name an alias
         aliases = [alias for alias in raider.aliases.all() if alias.name == name]
         if len(aliases):
+            return True
+
+        # Is the name an alt
+        alts = [alt for alt in raider.alts if alt.name == name]
+        if len(alts):
             return True
 
         return False

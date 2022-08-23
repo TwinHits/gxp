@@ -252,10 +252,11 @@ class GenerateExperienceGainsForRaid:
                 next = False
                 for raider in self.raid.raiders.all():
                     if RaiderUtils.is_name_for_raider(name, raider):
+                        raider_main = RaiderUtils.get_raider_for_name(name)
                         # If signed up at all and in raid, then +
                         ExperienceGainSerializer.create_experience_gain(
                             self.signed_up_accurately_event_id,
-                            raider.id,
+                            raider_main.id,
                             raid_id=self.raid.id,
                             timestamp=timestamp,
                             tokens=tokens,
@@ -338,10 +339,8 @@ class GenerateExperienceGainsForRaid:
             self.raid_start_timestamp - 1
         )  # This should be calculated early so raiders don't backslide at end of raid
 
-        all_raiders = Raider.objects.filter(
-            join_timestamp__lte=self.raid.timestamp, main=None
-        )
-        for raider in all_raiders:
+        all_raider_mains = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp, main=None)
+        for raider in all_raider_mains:
             ExperienceGainSerializer.create_experience_gain(
                 self.decay_per_boss_event_id,
                 raider.id,
@@ -352,12 +351,8 @@ class GenerateExperienceGainsForRaid:
             )
 
     @staticmethod
-    def calculate_experience_for_raider(self, raider):
-        raider_and_alts = list(raider.alts)
-        raider_and_alts.append(raider)
-        gains = ExperienceGain.objects.filter(
-            Q(raid__isnull=True) | Q(raid__optional=False), raider__in=raider_and_alts
-        )
+    def calculate_experience_for_raider(raider):
+        gains = ExperienceGain.objects.filter(Q(raid__isnull=True) | Q(raid__optional=False), raider=raider)
         highest_experience_level_experience_required = (
             ExperienceLevel.objects.last().experience_required
         )
@@ -379,5 +374,5 @@ class GenerateExperienceGainsForRaid:
         raider.save()
 
     def calculate_experience_for_raiders(self):
-        for raider in Raider.objects.all():
+        for raider in Raider.objects.filter(active=True):
             self.calculate_experience_for_raider(raider)
