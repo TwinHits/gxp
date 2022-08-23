@@ -89,7 +89,9 @@ class GenerateExperienceGainsForRaid:
         # Get map of encounters completed by name using an array of tokens' length to keep count
         encounter_logs = report.get("fights")  # array of fight name and player data ids
         for encounter_log in encounter_logs:
-            enounter_end_timestamp = self.raid_start_timestamp + encounter_log.get("endTime")
+            enounter_end_timestamp = self.raid_start_timestamp + encounter_log.get(
+                "endTime"
+            )
             encounter_name = encounter_log.get("name")
             self.timestamps_by_enounter_name[encounter_name] = enounter_end_timestamp
             tokens = {
@@ -163,12 +165,15 @@ class GenerateExperienceGainsForRaid:
                     flask = len(data.get("buffs").get("flask"))
 
                     tokens = {
-                        "encounter": encounter.get("name") # Ironforge Analyzer uses different encounter names :(
-                    }  
+                        "encounter": encounter.get(
+                            "name"
+                        )  # Ironforge Analyzer uses different encounter names :(
+                    }
 
                     flask_timestamp = (
-                        encounter.get("timestamp") + 1  # Offset time a bit for nice history ordering
-                    ) 
+                        encounter.get("timestamp")
+                        + 1  # Offset time a bit for nice history ordering
+                    )
                     if flask:
                         ExperienceGainSerializer.create_experience_gain(
                             self.flask_on_event_id,
@@ -213,11 +218,13 @@ class GenerateExperienceGainsForRaid:
 
             timestamp = (
                 self.raid.timestamp - 1  # Offset time a bit for nice history ordering
-            ) 
+            )
             tokens = {"zone": self.raid.zone}
 
             if response.get("status") == "failed":
-                print(f"Failed to get event details from event id {self.raid.log.raidHelperEventId} for logs code {self.raid.log.logsCode} .")
+                print(
+                    f"Failed to get event details from event id {self.raid.log.raidHelperEventId} for logs code {self.raid.log.logsCode} ."
+                )
                 print(response)
                 return
 
@@ -286,14 +293,18 @@ class GenerateExperienceGainsForRaid:
             print(f"WARNING: {self.raid.log.logsCode} has no parses.")
 
         for encounter in rankings:
-            encounter_name = self.correct_encounter_name(encounter.get("encounter").get("name"))
+            encounter_name = self.correct_encounter_name(
+                encounter.get("encounter").get("name")
+            )
             tokens = {"encounter": encounter_name}
             timestamp = self.timestamps_by_enounter_name.get(encounter_name)
             if timestamp:
                 timestamp = timestamp + 3  # Offset time a bit for nice history ordering
             else:
                 # This parse is not for an encounter, so skip
-                print(f"WARNING {self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings.")
+                print(
+                    f"WARNING {self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings."
+                )
                 continue
 
             tanks = encounter.get("roles").get("tanks").get("characters")
@@ -313,16 +324,23 @@ class GenerateExperienceGainsForRaid:
                     tokens=tokens,
                 )
 
-
     def decay_per_boss(self):
         encounters_count = len(self.timestamps_by_enounter_name)
-        tokens = { "encounters_count": encounters_count,}
+        tokens = {
+            "encounters_count": encounters_count,
+        }
 
-        decay_experience_event = ExperienceEvent.objects.get(pk=self.decay_per_boss_event_id)
+        decay_experience_event = ExperienceEvent.objects.get(
+            pk=self.decay_per_boss_event_id
+        )
         decay_experience_value = encounters_count * decay_experience_event.value
-        timestamp = self.raid_start_timestamp - 1 # This should be calculated early so raiders don't backslide at end of raid
+        timestamp = (
+            self.raid_start_timestamp - 1
+        )  # This should be calculated early so raiders don't backslide at end of raid
 
-        all_raiders = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp, main=None)
+        all_raiders = Raider.objects.filter(
+            join_timestamp__lte=self.raid.timestamp, main=None
+        )
         for raider in all_raiders:
             ExperienceGainSerializer.create_experience_gain(
                 self.decay_per_boss_event_id,
@@ -330,28 +348,36 @@ class GenerateExperienceGainsForRaid:
                 raid_id=self.raid.id,
                 timestamp=timestamp,
                 tokens=tokens,
-                value=decay_experience_value
+                value=decay_experience_value,
             )
 
+    @staticmethod
+    def calculate_experience_for_raider(self, raider):
+        raider_and_alts = list(raider.alts)
+        raider_and_alts.append(raider)
+        gains = ExperienceGain.objects.filter(
+            Q(raid__isnull=True) | Q(raid__optional=False), raider__in=raider_and_alts
+        )
+        highest_experience_level_experience_required = (
+            ExperienceLevel.objects.last().experience_required
+        )
+        experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(
+            raider
+        )
+
+        experience = 0
+        for gain in gains:
+            new_experience = experience + (gain.experience * experience_multipler)
+            if new_experience < 0:
+                experience = 0
+            elif new_experience > highest_experience_level_experience_required:
+                experience = highest_experience_level_experience_required
+            else:
+                experience = new_experience
+
+        raider.experience = experience
+        raider.save()
 
     def calculate_experience_for_raiders(self):
         for raider in Raider.objects.all():
-            raider_and_alts = list(raider.alts)
-            raider_and_alts.append(raider)
-            gains = ExperienceGain.objects.filter(Q(raid__isnull=True) | Q(raid__optional=False), raider__in=raider_and_alts)
-            highest_experience_level_experience_required = ExperienceLevel.objects.last().experience_required
-            experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider)
-
-            experience = 0
-            for gain in gains:
-                new_experience = experience + (gain.experience * experience_multipler)
-                if new_experience < 0:
-                    experience = 0
-                elif new_experience > highest_experience_level_experience_required:
-                    experience = highest_experience_level_experience_required
-                else: 
-                    experience = new_experience
-
-            raider.experience = experience
-            raider.save()
-            
+            self.calculate_experience_for_raider(raider)

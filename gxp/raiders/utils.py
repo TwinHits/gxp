@@ -1,4 +1,3 @@
-
 from gxp.experience.models import ExperienceLevel
 from gxp.raids.models import Raid
 from gxp.raiders.models import Raider, Rename
@@ -16,11 +15,13 @@ class RaiderUtils:
         total_guild_raids = Raid.objects.filter(optional=False).count()
         if total_guild_raids > 0:
             return (raider_raids / total_guild_raids) + 1
-        else: 
+        else:
             return 1
 
     def calculate_experience_level_for_raider(raider):
-        experience_level = ExperienceLevel.objects.filter(experience_required__lte=raider.experience).last()
+        experience_level = ExperienceLevel.objects.filter(
+            experience_required__lte=raider.experience
+        ).last()
         return experience_level
 
     def count_raids_for_raider(raider):
@@ -40,7 +41,7 @@ class RaiderUtils:
             filter = Rename.objects.filter(renamed_from=name)
             if filter.exists():
                 return filter.first().raider
-            
+
             filter = Raider.objects.filter(aliases__name=name)
             if filter.exists():
                 return filter.first()
@@ -53,9 +54,11 @@ class RaiderUtils:
         # Is the name the raider
         if name == raider.name:
             return True
-        
+
         # Is the name an old name
-        renames = [rename for rename in raider.renames.all() if rename.renamed_from == name]
+        renames = [
+            rename for rename in raider.renames.all() if rename.renamed_from == name
+        ]
         if len(renames):
             return True
 
@@ -63,7 +66,6 @@ class RaiderUtils:
         alts = [alt for alt in raider.alts if alt.name == name]
         if len(alts):
             return True
-
 
         # Is the name an alias
         aliases = [alias for alias in raider.aliases.all() if alias.name == name]

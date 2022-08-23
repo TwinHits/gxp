@@ -7,6 +7,7 @@ from gxp.raids.constants import ValidationErrors
 from gxp.raiders.utils import RaiderUtils
 from gxp.shared.utils import SharedUtils
 
+
 class AliasSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     raider = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
@@ -32,23 +33,30 @@ class RaiderSerializer(serializers.ModelSerializer):
     alts = serializers.SerializerMethodField()
     aliases = AliasSerializer(many=True, required=False)
     active = serializers.BooleanField(required=False)
-    main = serializers.PrimaryKeyRelatedField(required=False,  queryset=Raider.objects.all(), allow_null=True, default=None)
+    main = serializers.PrimaryKeyRelatedField(
+        required=False, queryset=Raider.objects.all(), allow_null=True, default=None
+    )
 
     def to_representation(self, raider):
         data = super().to_representation(raider)
 
         total_raids = RaiderUtils.count_raids_for_raider(raider)
-        experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(raider, total_raids)
-        level = ExperienceLevelSerializer(RaiderUtils.calculate_experience_level_for_raider(raider)).data
+        experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(
+            raider, total_raids
+        )
+        level = ExperienceLevelSerializer(
+            RaiderUtils.calculate_experience_level_for_raider(raider)
+        ).data
 
-        data.update({
-            "totalRaids": total_raids,
-            "experienceMultipler": experience_multipler,
-            "experienceLevel": level
-        })
+        data.update(
+            {
+                "totalRaids": total_raids,
+                "experienceMultipler": experience_multipler,
+                "experienceLevel": level,
+            }
+        )
 
         return data
-  
 
     def validate_name(self, value):
         if not RaiderUtils.is_valid_character_name(value):
@@ -94,18 +102,20 @@ class RaiderSerializer(serializers.ModelSerializer):
             if Raider.objects.filter(name=name).exists():
                 raise serializers.ValidationError(ValidationErrors.NAME_ALREADY_EXISTS)
 
-            Rename.objects.create(**{
-                "raider": instance,
-                "renamed_from": instance.name,
-            })
+            Rename.objects.create(
+                **{
+                    "raider": instance,
+                    "renamed_from": instance.name,
+                }
+            )
             instance.name = name
 
         new_main = validated_data.get("main", instance.main)
         if new_main != instance.main:
-            
+
             if new_main and (new_main.isAlt or instance.isAlt):
                 raise serializers.ValidationError(ValidationErrors.RAIDER_IS_AN_ALT)
-            
+
             instance.main = new_main
 
         instance.save()

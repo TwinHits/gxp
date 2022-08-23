@@ -77,7 +77,12 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def create_experience_gain(
-        experience_event_id, raider_id, raid_id=None, timestamp=None, tokens=None, value=None
+        experience_event_id,
+        raider_id,
+        raid_id=None,
+        timestamp=None,
+        tokens=None,
+        value=None,
     ):
         data = {}
 
@@ -91,7 +96,6 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
             data["timestamp"] = timestamp
         if value is not None:
             data["value"] = value
-
 
         experience_gain_serializer = ExperienceGainSerializer(data=data)
         experience_gain_serializer.is_valid(raise_exception=True)

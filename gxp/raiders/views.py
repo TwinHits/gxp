@@ -13,7 +13,7 @@ class RaidersViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         active = self.request.query_params.get("active")
         if active is not None:
-            active= json.loads(active)
+            active = json.loads(active)
             self.queryset = self.queryset.filter(active=active)
 
         name = self.request.query_params.get("name")
@@ -21,6 +21,7 @@ class RaidersViewSet(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(name=name)
 
         return self.queryset
+
 
 class AliasesViewSet(viewsets.ModelViewSet):
     queryset = Alias.objects.all()

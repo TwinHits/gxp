@@ -9,7 +9,7 @@ class Raider(models.Model):
     name = models.CharField(max_length=12, null=False)
     join_timestamp = models.IntegerField()
     active = models.BooleanField(default=True)
-    main = models.ForeignKey('Raider', on_delete=models.CASCADE, null=True)
+    main = models.ForeignKey("Raider", on_delete=models.CASCADE, null=True)
     experience = models.FloatField(default=0)
 
     @property
@@ -46,10 +46,11 @@ class Alias(models.Model):
 
 class Rename(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    raider = models.ForeignKey(Raider, on_delete=models.CASCADE, related_name="renames", null=False)
+    raider = models.ForeignKey(
+        Raider, on_delete=models.CASCADE, related_name="renames", null=False
+    )
     renamed_from = models.CharField(max_length=12, null=False)
 
     class Meta:
         db_table = "gxp_renames"
         ordering = ["raider"]
-        

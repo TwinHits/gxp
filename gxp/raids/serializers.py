@@ -25,16 +25,33 @@ class LogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Log
-        fields = ["logsCode", "raidHelperEventId", "active", "timestamp", "zone", "optional"]
+        fields = [
+            "logsCode",
+            "raidHelperEventId",
+            "active",
+            "timestamp",
+            "zone",
+            "optional",
+        ]
 
     def create(self, validated_data):
         if Log.objects.filter(logsCode=validated_data.get("logsCode")):
-            raise serializers.ValidationError(ValidationErrors.WARCRAFT_LOGS_ID_LOG_ALREADY_EXISTS)
+            raise serializers.ValidationError(
+                ValidationErrors.WARCRAFT_LOGS_ID_LOG_ALREADY_EXISTS
+            )
 
-        raid_report = WarcraftLogsInterface.get_raid_by_report_id(validated_data["logsCode"])
-        validated_data["timestamp"] = WarcraftLogsUtils.get_start_timestamp_from_report(raid_report)
-        validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(raid_report)
-        validated_data["optional"] = RaidUtils.is_raid_optional(validated_data.get("timestamp"))
+        raid_report = WarcraftLogsInterface.get_raid_by_report_id(
+            validated_data["logsCode"]
+        )
+        validated_data["timestamp"] = WarcraftLogsUtils.get_start_timestamp_from_report(
+            raid_report
+        )
+        validated_data["zone"] = WarcraftLogsUtils.get_zone_name_from_report(
+            raid_report
+        )
+        validated_data["optional"] = RaidUtils.is_raid_optional(
+            validated_data.get("timestamp")
+        )
 
         log = Log.objects.create(**validated_data)
         return log
@@ -61,7 +78,14 @@ class RaidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Raid
-        fields = ["id", "log", "optional", "raiders", "timestamp", "encounters_completed"]
+        fields = [
+            "id",
+            "log",
+            "optional",
+            "raiders",
+            "timestamp",
+            "encounters_completed",
+        ]
 
     def create(self, validated_data):
         raiders = []
@@ -90,7 +114,12 @@ class RaidSerializer(serializers.ModelSerializer):
                 if "optional" not in validated_data:
                     validated_data["optional"] = log.optional
 
-                raiders, encounters_completed = WarcraftLogsInterface.get_raiders_and_encounters_by_report_id(logs_code)
+                (
+                    raiders,
+                    encounters_completed,
+                ) = WarcraftLogsInterface.get_raiders_and_encounters_by_report_id(
+                    logs_code
+                )
                 validated_data["encounters_completed"] = encounters_completed
             except Exception as err:
                 raise serializers.ValidationError(err)

@@ -48,4 +48,4 @@ class WarcraftLogsUtils:
         return raiders
 
     def get_number_of_enocunters_from_report(report):
-        return len(report.get('fights'))
+        return len(report.get("fights"))
