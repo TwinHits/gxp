@@ -1,6 +1,9 @@
 import json
 
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from gxp.experience.generate_experience_gains import GenerateExperienceGainsForRaid
 
 from gxp.raiders.models import Alias, Raider
 from gxp.raiders.serializers import RaiderSerializer, AliasSerializer
@@ -13,7 +16,7 @@ class RaidersViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         active = self.request.query_params.get("active")
         if active is not None:
-            active = json.loads(active)
+            active = json.loads(active) # converts javascript's 'true' to python's 'True'
             self.queryset = self.queryset.filter(active=active)
 
         name = self.request.query_params.get("name")
@@ -21,6 +24,14 @@ class RaidersViewSet(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(name=name)
 
         return self.queryset
+
+
+    @action(detail=False, methods=["PUT"])
+    def calculate_experience(self, request):
+
+        GenerateExperienceGainsForRaid.calculate_experience_for_raiders()
+
+        return Response()
 
 
 class AliasesViewSet(viewsets.ModelViewSet):
