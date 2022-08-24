@@ -26,8 +26,18 @@ class RaidersViewSet(viewsets.ModelViewSet):
         return self.queryset
 
 
-    @action(detail=False, methods=["PUT"])
-    def calculate_experience(self, request):
+    @action(detail=True, methods=["PUT"], url_path="calculate_experience")
+    def calculate_experience_detail(self, request, pk=None):
+
+        if pk is not None:
+            raider = self.queryset.get(pk=pk)
+            GenerateExperienceGainsForRaid.calculate_experience_for_raider(raider)
+
+        return Response()
+
+        
+    @action(detail=False, methods=["PUT"], url_path="calculate_experience")
+    def calculate_experience(self, request, pk=None):
 
         GenerateExperienceGainsForRaid.calculate_experience_for_raiders()
 

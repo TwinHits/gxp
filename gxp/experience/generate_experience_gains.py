@@ -373,6 +373,7 @@ class GenerateExperienceGainsForRaid:
         raider.experience = experience
         raider.save()
 
-    def calculate_experience_for_raiders(self):
+    @staticmethod
+    def calculate_experience_for_raiders():
         for raider in Raider.objects.filter(active=True):
-            self.calculate_experience_for_raider(raider)
+            GenerateExperienceGainsForRaid.calculate_experience_for_raider(raider)
