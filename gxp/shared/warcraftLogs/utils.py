@@ -38,12 +38,10 @@ class WarcraftLogsUtils:
 
         raiders = []
         for name in participating_names_set:
-            try:
-                raider = RaiderUtils.get_raider_for_name(name)
-                raiders.append(raider)
-            except Raider.DoesNotExist:
+            raider = RaiderUtils.get_raider_for_name(name)
+            if raider is None:
                 raider = RaiderSerializer.create_raider(name, join_timestamp=timestamp)
-                raiders.append(raider)
+            raiders.append(raider)
 
         return raiders
 

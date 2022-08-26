@@ -14,7 +14,7 @@ class RaiderUtils:
             raider_raids = RaiderUtils.count_raids_for_raider(raider)
         total_guild_raids = Raid.objects.filter(optional=False).count()
         if total_guild_raids > 0:
-            return (raider_raids / total_guild_raids) + 1
+            return ((raider_raids / total_guild_raids) * 0.33) + 1
         else:
             return 1
 
