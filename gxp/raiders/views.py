@@ -3,15 +3,17 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from gxp.experience.generate_experience_gains import GenerateExperienceGainsForRaid
 
+from gxp.experience.generate_experience_gains import GenerateExperienceGainsForRaid
 from gxp.raiders.models import Alias, Raider
 from gxp.raiders.serializers import RaiderSerializer, AliasSerializer
+from gxp.shared.permissions import IsAuthenticatedOrRead
 
 
 class RaidersViewSet(viewsets.ModelViewSet):
     queryset = Raider.objects.all()
     serializer_class = RaiderSerializer
+    permission_classes = [IsAuthenticatedOrRead]
 
     def get_queryset(self):
         active = self.request.query_params.get("active")
@@ -47,3 +49,4 @@ class RaidersViewSet(viewsets.ModelViewSet):
 class AliasesViewSet(viewsets.ModelViewSet):
     queryset = Alias.objects.all()
     serializer_class = AliasSerializer
+    permission_classes = [IsAuthenticatedOrRead]

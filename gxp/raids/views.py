@@ -7,18 +7,21 @@ from gxp.raids.serializers import RaidSerializer, LogSerializer
 
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
 from gxp.shared.warcraftLogs.utils import WarcraftLogsUtils
+from gxp.shared.permissions import IsAuthenticatedOrRead
 
 
 class RaidsViewSet(viewsets.ModelViewSet):
     queryset = Raid.objects.all()
     serializer_class = RaidSerializer
+    permission_classes = [IsAuthenticatedOrRead]
 
 
 class LogsViewSet(viewsets.ModelViewSet):
     queryset = Log.objects.all()
     serializer_class = LogSerializer
+    permission_classes = [IsAuthenticatedOrRead]
 
-    @action(detail=False, methods=["POST"])
+    @action(detail=False, methods=["PUT"])
     def pull(self, request):
 
         logs = WarcraftLogsInterface.get_logcodes_for_guild()
