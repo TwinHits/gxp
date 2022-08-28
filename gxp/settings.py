@@ -33,7 +33,9 @@ SECRET_KEY = "django-insecure-5^p8c%p2k0$*%m&5vjuzd+estz_1tr$5v))w!dy5w13#ne6!h&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "jbm6m3eptm.us-east-1.awsapprunner.com"
+]
 
 
 # Application definition
@@ -145,6 +147,7 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://localhost:8000",
+    "http://localhost:8080", # local front end env
+    "http://localhost:8000", # local back end env
+    "https://jbm6m3eptm.us-east-1.awsapprunner.com:8000", # Test env
 ]
