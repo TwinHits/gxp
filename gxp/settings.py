@@ -27,11 +27,8 @@ WARCRAFT_LOGS_TOKEN_ENDPOINT = config("WARCRAFT_LOGS_TOKEN_ENDPOINT")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-5^p8c%p2k0$*%m&5vjuzd+estz_1tr$5v))w!dy5w13#ne6!h&"
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = config("DJANGO_SECRET_KEY")
+DEBUG = config("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = [
     "jbm6m3eptm.us-east-1.awsapprunner.com"
@@ -145,6 +142,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080", # local front end env
