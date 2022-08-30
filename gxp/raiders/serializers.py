@@ -1,3 +1,4 @@
+from email.policy import default
 from rest_framework import serializers
 from gxp.experience.serializers import ExperienceLevelSerializer
 
@@ -6,6 +7,18 @@ from gxp.raiders.models import Alias, Raider, Rename
 from gxp.raids.constants import ValidationErrors
 from gxp.raiders.utils import RaiderUtils
 from gxp.shared.utils import SharedUtils
+
+
+class RenameSerializer(serializers.ModelSerializer):
+    renamed_from = serializers.CharField()
+    raider = serializers.PrimaryKeyRelatedField(queryset=Raider.objects.all())
+
+    class Meta:
+        model = Alias
+        fields = ["id", "renamed_from", "raider"]
+
+    def create(self, validated_data):
+        return Alias.objects.create(**validated_data)
 
 
 class AliasSerializer(serializers.ModelSerializer):
@@ -36,6 +49,7 @@ class RaiderSerializer(serializers.ModelSerializer):
     main = serializers.PrimaryKeyRelatedField(
         required=False, queryset=Raider.objects.all(), allow_null=True, default=None
     )
+    renames = RenameSerializer(many=True, required=False)
 
     def to_representation(self, raider):
         data = super().to_representation(raider)
@@ -82,6 +96,7 @@ class RaiderSerializer(serializers.ModelSerializer):
             "alts",
             "aliases",
             "active",
+            "renames",
         ]
 
     def create(self, validated_data):
