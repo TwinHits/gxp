@@ -385,7 +385,11 @@ class GenerateExperienceGainsForRaid:
 
         experience = 0
         for gain in gains:
-            new_experience = experience + (gain.experience * experience_multipler)
+            if gain.multiplied:
+                new_experience = experience + (gain.experience * experience_multipler)
+            else:
+                new_experience = experience + gain.experience
+
             if new_experience < 0:
                 experience = 0
             elif new_experience > highest_experience_level_experience_required:

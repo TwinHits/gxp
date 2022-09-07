@@ -1,3 +1,4 @@
+from pyexpat import model
 import uuid
 from django.db import models
 
@@ -10,6 +11,7 @@ class ExperienceEvent(models.Model):
     description = models.CharField(max_length=255, null=False)
     template = models.CharField(max_length=255)
     value = models.FloatField(null=True)
+    multiplied = models.BooleanField(default=True)
 
     class Meta:
         db_table = "gxp_experience_events"
@@ -37,6 +39,13 @@ class ExperienceGain(models.Model):
             return self.value
         elif self.experienceEvent is not None:
             return self.experienceEvent.value
+
+    @property
+    def multiplied(self):
+        if self.experienceEvent is not None:
+            return self.experienceEvent.multiplied
+        else:
+            return True
 
     class Meta:
         db_table = "gxp_experience_gains"

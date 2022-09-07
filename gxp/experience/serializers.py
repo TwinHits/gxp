@@ -10,7 +10,7 @@ from gxp.experience.utils import ExperienceUtils
 class ExperienceEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExperienceEvent
-        fields = ["id", "description", "value", "template"]
+        fields = ["id", "description", "value", "template", "multiplied"]
 
     def create(self, validated_data):
         return ExperienceEvent.objects.create(**validated_data)
@@ -19,6 +19,7 @@ class ExperienceEventSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get("description", instance.description)
         instance.value = validated_data.get("value", instance.value)
         instance.template = validated_data.get("template", instance.template)
+        instance.multiplied = validated_data.get("multiplied", instance.multiplied)
 
         instance.save()
         return instance
