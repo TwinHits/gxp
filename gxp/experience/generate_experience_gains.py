@@ -1,3 +1,4 @@
+from time import time
 from django.db.models import Q
 
 from gxp.raiders.models import Raider
@@ -36,6 +37,8 @@ class GenerateExperienceGainsForRaid:
 
         self.decay_per_boss_event_id = "DECAY_PER_BOSS"
 
+        self.previous_expansion_raid_event_id = "PREV_EXPAC_RAID"
+
         self.timestamps_by_enounter_name = {}
 
         self.corrected_encounter_names = {
@@ -43,15 +46,21 @@ class GenerateExperienceGainsForRaid:
             "Zul'jin": "Zul'Jin",
         }
 
-        self.raid_start_timestamp = None
+        self.raid_start_timestamp = self.raid.timestamp
         self.raid_end_timestamp = None
 
+        self.end_of_previous_expansion = 1664425095 * 1000
+
     def generate_all(self):
-        self.boss_kill_and_complete_raid_experience()
-        self.flask_and_consumes_raid_experience()
-        self.sign_ups_raid_experience()
-        self.performance_experience()
-        self.decay_per_boss()
+        if self.raid_start_timestamp > self.end_of_previous_expansion:
+            self.boss_kill_and_complete_raid_experience()
+            self.flask_and_consumes_raid_experience()
+            self.sign_ups_raid_experience()
+            self.performance_experience()
+            self.decay_per_boss()
+        else:
+            self.calculate_experience_last_expansion()
+
         self.calculate_experience_for_raiders()
 
     def get_experienceEvent_id_for_parse_percent(self, parse_percent):
@@ -349,6 +358,20 @@ class GenerateExperienceGainsForRaid:
                 tokens=tokens,
                 value=decay_experience_value,
             )
+
+    def calculate_experience_last_expansion(self):
+        tokens = {
+            'zone': self.raid.zone
+        }
+        for raider in self.raid.raiders.all():
+            ExperienceGainSerializer.create_experience_gain(
+                self.previous_expansion_raid_event_id,
+                raider.id,
+                raid_id=self.raid.id,
+                timestamp=self.raid_start_timestamp,
+                tokens=tokens
+            )
+        return
 
     @staticmethod
     def calculate_experience_for_raider(raider):

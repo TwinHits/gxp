@@ -31,7 +31,8 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 DEBUG = config("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = [
-    "jbm6m3eptm.us-east-1.awsapprunner.com"
+    "jbm6m3eptm.us-east-1.awsapprunner.com",
+    "localhost",
 ]
 
 
@@ -149,4 +150,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080", # local front end env
     "http://localhost:8000", # local back end env
     "https://jbm6m3eptm.us-east-1.awsapprunner.com:8000", # Test env
+    "https://www.guildxp.com.s3-website-us-east-1.amazonaws.com", # s3 bucket
+    "http://www.guildxp.com.s3-website-us-east-1.amazonaws.com"
 ]
