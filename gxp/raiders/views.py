@@ -18,7 +18,9 @@ class RaidersViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         active = self.request.query_params.get("active")
         if active is not None:
-            active = json.loads(active) # converts javascript's 'true' to python's 'True'
+            active = json.loads(
+                active
+            )  # converts javascript's 'true' to python's 'True'
             self.queryset = self.queryset.filter(active=active)
 
         name = self.request.query_params.get("name")
@@ -26,7 +28,6 @@ class RaidersViewSet(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(name=name)
 
         return self.queryset
-
 
     @action(detail=True, methods=["PUT"], url_path="calculate_experience")
     def calculate_experience_detail(self, request, pk=None):
@@ -37,7 +38,6 @@ class RaidersViewSet(viewsets.ModelViewSet):
 
         return Response()
 
-        
     @action(detail=False, methods=["PUT"], url_path="calculate_experience")
     def calculate_experience(self, request, pk=None):
 

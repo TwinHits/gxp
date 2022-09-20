@@ -139,17 +139,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080", # local front end env
-    "http://localhost:8000", # local back end env
-    "https://jbm6m3eptm.us-east-1.awsapprunner.com:8000", # Test env
-    "https://www.guildxp.com.s3-website-us-east-1.amazonaws.com", # s3 bucket
-    "http://www.guildxp.com.s3-website-us-east-1.amazonaws.com"
+    "http://localhost:8080",  # local front end env
+    "http://localhost:8000",  # local back end env
+    "https://jbm6m3eptm.us-east-1.awsapprunner.com:8000",  # Test env
+    "https://www.guildxp.com.s3-website-us-east-1.amazonaws.com",  # s3 bucket
+    "http://www.guildxp.com.s3-website-us-east-1.amazonaws.com",
 ]

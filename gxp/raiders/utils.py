@@ -55,7 +55,6 @@ class RaiderUtils:
         else:
             return raider
 
-
     # Check if the name is the raider, an , or an alias
     def is_name_for_raider(name, raider):
 

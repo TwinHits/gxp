@@ -50,8 +50,7 @@ class GenerateExperienceGainsForRaid:
         self.raid_end_timestamp = None
 
         self.end_of_previous_expansion = 1664425095 * 1000
-        #self.end_of_previous_expansion = 0 * 1000
-        
+        # self.end_of_previous_expansion = 0 * 1000
 
     def generate_all(self):
         if self.raid_start_timestamp > self.end_of_previous_expansion:
@@ -350,7 +349,9 @@ class GenerateExperienceGainsForRaid:
             self.raid_start_timestamp - 1
         )  # This should be calculated early so raiders don't backslide at end of raid
 
-        all_raider_mains = Raider.objects.filter(join_timestamp__lte=self.raid.timestamp, main=None)
+        all_raider_mains = Raider.objects.filter(
+            join_timestamp__lte=self.raid.timestamp, main=None
+        )
         for raider in all_raider_mains:
             ExperienceGainSerializer.create_experience_gain(
                 self.decay_per_boss_event_id,
@@ -362,22 +363,22 @@ class GenerateExperienceGainsForRaid:
             )
 
     def calculate_experience_last_expansion(self):
-        tokens = {
-            'zone': self.raid.zone
-        }
+        tokens = {"zone": self.raid.zone}
         for raider in self.raid.raiders.all():
             ExperienceGainSerializer.create_experience_gain(
                 self.previous_expansion_raid_event_id,
                 raider.id,
                 raid_id=self.raid.id,
                 timestamp=self.raid_start_timestamp,
-                tokens=tokens
+                tokens=tokens,
             )
         return
 
     @staticmethod
     def calculate_experience_for_raider(raider):
-        gains = ExperienceGain.objects.filter(Q(raid__isnull=True) | Q(raid__optional=False), raider=raider)
+        gains = ExperienceGain.objects.filter(
+            Q(raid__isnull=True) | Q(raid__optional=False), raider=raider
+        )
         experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(
             raider
         )
@@ -395,13 +396,13 @@ class GenerateExperienceGainsForRaid:
                 new_experience = experience + gain.experience
 
             if new_experience < floor:
-                experience = floor 
+                experience = floor
             elif new_experience > highest_experience_level_experience_required:
                 experience = highest_experience_level_experience_required
             else:
                 experience = new_experience
 
-             # once you get above the second lowest level, don't drop below it again
+            # once you get above the second lowest level, don't drop below it again
             if experience > experience_floor:
                 floor = experience_floor
 
