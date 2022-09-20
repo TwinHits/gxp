@@ -50,6 +50,8 @@ class GenerateExperienceGainsForRaid:
         self.raid_end_timestamp = None
 
         self.end_of_previous_expansion = 1664425095 * 1000
+        #self.end_of_previous_expansion = 0 * 1000
+        
 
     def generate_all(self):
         if self.raid_start_timestamp > self.end_of_previous_expansion:
@@ -376,13 +378,15 @@ class GenerateExperienceGainsForRaid:
     @staticmethod
     def calculate_experience_for_raider(raider):
         gains = ExperienceGain.objects.filter(Q(raid__isnull=True) | Q(raid__optional=False), raider=raider)
-        highest_experience_level_experience_required = (
-            ExperienceLevel.objects.last().experience_required
-        )
         experience_multipler = RaiderUtils.calculate_experience_multipler_for_raider(
             raider
         )
+        highest_experience_level_experience_required = (
+            ExperienceLevel.objects.last().experience_required
+        )
+        experience_floor = ExperienceLevel.objects.all()[1].experience_required
 
+        floor = 0
         experience = 0
         for gain in gains:
             if gain.multiplied:
@@ -390,12 +394,16 @@ class GenerateExperienceGainsForRaid:
             else:
                 new_experience = experience + gain.experience
 
-            if new_experience < 0:
-                experience = 0
+            if new_experience < floor:
+                experience = floor 
             elif new_experience > highest_experience_level_experience_required:
                 experience = highest_experience_level_experience_required
             else:
                 experience = new_experience
+
+             # once you get above the second lowest level, don't drop below it again
+            if experience > experience_floor:
+                floor = experience_floor
 
         raider.experience = experience
         raider.save()
