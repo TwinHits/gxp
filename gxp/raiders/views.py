@@ -40,8 +40,9 @@ class RaidersViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["PUT"], url_path="calculate_experience")
     def calculate_experience(self, request, pk=None):
+        active = request.POST.get("active", None)
 
-        GenerateExperienceGainsForRaid.calculate_experience_for_raiders()
+        GenerateExperienceGainsForRaid.calculate_experience_for_raiders(active)
 
         return Response()
 

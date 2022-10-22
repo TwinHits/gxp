@@ -49,7 +49,7 @@ class GenerateExperienceGainsForRaid:
         self.raid_start_timestamp = self.raid.timestamp
         self.raid_end_timestamp = None
 
-        self.end_of_previous_expansion = 1664425095 * 1000
+        self.end_of_previous_expansion = 1666065600 * 1000
         # self.end_of_previous_expansion = 0 * 1000
 
     def generate_all(self):
@@ -62,7 +62,7 @@ class GenerateExperienceGainsForRaid:
         else:
             self.calculate_experience_last_expansion()
 
-        self.calculate_experience_for_raiders()
+        self.calculate_experience_for_raiders(True)
 
     def get_experienceEvent_id_for_parse_percent(self, parse_percent):
         if parse_percent <= 25:
@@ -410,6 +410,11 @@ class GenerateExperienceGainsForRaid:
         raider.save()
 
     @staticmethod
-    def calculate_experience_for_raiders():
-        for raider in Raider.objects.filter(active=True):
+    def calculate_experience_for_raiders(active=None):
+        if active is not None:
+            raiders = Raider.objects.filter(active=active)
+        else:
+            raiders = Raider.objects.all()
+
+        for raider in raiders:
             GenerateExperienceGainsForRaid.calculate_experience_for_raider(raider)
