@@ -140,6 +140,8 @@ class RaiderSerializer(serializers.ModelSerializer):
 
             instance.main = new_main
 
+        instance.join_timestamp = validated_data.get("join_timestamp", instance.join_timestamp)
+
         instance.save()
         return instance
 
