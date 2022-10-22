@@ -49,11 +49,10 @@ class GenerateExperienceGainsForRaid:
         self.raid_start_timestamp = self.raid.timestamp
         self.raid_end_timestamp = None
 
-        self.end_of_previous_expansion = 1666065600 * 1000
-        # self.end_of_previous_expansion = 0 * 1000
+        self.start_of_expansion = 1665633600 * 1000
 
     def generate_all(self):
-        if self.raid_start_timestamp > self.end_of_previous_expansion:
+        if self.raid_start_timestamp > self.start_of_expansion:
             self.boss_kill_and_complete_raid_experience()
             self.flask_and_consumes_raid_experience()
             self.sign_ups_raid_experience()
@@ -226,10 +225,19 @@ class GenerateExperienceGainsForRaid:
                 self.raid.log.raidHelperEventId
             )
 
+            encounters_count = len(self.timestamps_by_enounter_name)
             timestamp = (
                 self.raid.timestamp - 1  # Offset time a bit for nice history ordering
             )
-            tokens = {"zone": self.raid.zone}
+            tokens = {
+                "zone": self.raid.zone,
+                "encounters_count": encounters_count,
+            }
+
+            sign_up_experience_event = ExperienceEvent.objects.get(
+                pk=self.signed_up_accurately_event_id
+            )
+            sign_up_experience_value = encounters_count * sign_up_experience_event.value
 
             if response.get("status") == "failed":
                 print(
@@ -270,6 +278,7 @@ class GenerateExperienceGainsForRaid:
                             raid_id=self.raid.id,
                             timestamp=timestamp,
                             tokens=tokens,
+                            value=sign_up_experience_value,
                         )
                         next = True
                         break
@@ -285,6 +294,7 @@ class GenerateExperienceGainsForRaid:
                             raid_id=self.raid.id,
                             timestamp=timestamp,
                             tokens=tokens,
+                            value=sign_up_experience_value,
                         )
                         next = True
 
@@ -346,8 +356,8 @@ class GenerateExperienceGainsForRaid:
         )
         decay_experience_value = encounters_count * decay_experience_event.value
         timestamp = (
-            self.raid_start_timestamp - 1
-        )  # This should be calculated early so raiders don't backslide at end of raid
+            self.raid_end_timestamp + 1
+        )
 
         all_raider_mains = Raider.objects.filter(
             join_timestamp__lte=self.raid.timestamp, main=None
@@ -390,7 +400,7 @@ class GenerateExperienceGainsForRaid:
         floor = 0
         experience = 0
         for gain in gains:
-            if gain.multiplied:
+            if False and gain.multiplied:
                 new_experience = experience + (gain.experience * experience_multipler)
             else:
                 new_experience = experience + gain.experience
