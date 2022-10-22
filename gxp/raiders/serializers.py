@@ -110,7 +110,14 @@ class RaiderSerializer(serializers.ModelSerializer):
         return Raider.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.active = validated_data.get("active", instance.active)
+
+        new_active_state = validated_data.get("active", instance.active)
+        if new_active_state != instance.active:
+            # Change active state for each alt
+            for alt in instance.alts:
+                alt.active = new_active_state
+                alt.save()
+            instance.active = new_active_state
 
         name = validated_data.get("name", instance.name)
         if name != instance.name:
