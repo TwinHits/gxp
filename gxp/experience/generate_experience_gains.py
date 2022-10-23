@@ -304,46 +304,50 @@ class GenerateExperienceGainsForRaid:
                         print(f"DID NOT FIND RAIDER FOR {name}")
 
     def performance_experience(self):
-        rankings = (
-            WarcraftLogsInterface.get_performance_by_report_id(self.raid.log.logsCode)
-            .get("rankings")
-            .get("data")
-        )
-
-        if len(rankings) == 0:
-            print(f"WARNING: {self.raid.log.logsCode} has no parses.")
-
-        for encounter in rankings:
-            encounter_name = self.correct_encounter_name(
-                encounter.get("encounter").get("name")
+        ranking_types = ['dps', 'hps']
+        for ranking_type in ranking_types:
+            rankings = (
+                WarcraftLogsInterface.get_performance_by_report_id(self.raid.log.logsCode, ranking_type)
+                .get("rankings")
+                .get("data")
             )
-            tokens = {"encounter": encounter_name}
-            timestamp = self.timestamps_by_enounter_name.get(encounter_name)
-            if timestamp:
-                timestamp = timestamp + 3  # Offset time a bit for nice history ordering
-            else:
-                # This parse is not for an encounter, so skip
-                print(
-                    f"WARNING {self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings."
-                )
-                continue
 
-            tanks = encounter.get("roles").get("tanks").get("characters")
-            healers = encounter.get("roles").get("healers").get("characters")
-            dps = encounter.get("roles").get("dps").get("characters")
-            ranking_raiders = tanks + healers + dps
+            if len(rankings) == 0:
+                print(f"WARNING: {self.raid.log.logsCode} has no parses.")
 
-            for ranking_raider in ranking_raiders:
-                raider = RaiderUtils.get_raider_for_name(ranking_raider.get("name"))
-                parse_percent = ranking_raider.get("bracketPercent")
-                event_id = self.get_experienceEvent_id_for_parse_percent(parse_percent)
-                ExperienceGainSerializer.create_experience_gain(
-                    event_id,
-                    raider.id,
-                    raid_id=self.raid.id,
-                    timestamp=timestamp,
-                    tokens=tokens,
+            for encounter in rankings:
+                encounter_name = self.correct_encounter_name(
+                    encounter.get("encounter").get("name")
                 )
+                tokens = {"encounter": encounter_name}
+                timestamp = self.timestamps_by_enounter_name.get(encounter_name)
+                if timestamp:
+                    timestamp = timestamp + 3  # Offset time a bit for nice history ordering
+                else:
+                    # This parse is not for an encounter, so skip
+                    print(
+                        f"WARNING {self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings."
+                    )
+                    continue
+
+                if ranking_type == 'dps':
+                    dps = encounter.get("roles").get("dps").get("characters")
+                    tanks = encounter.get("roles").get("tanks").get("characters")
+                    ranking_raiders = dps + tanks
+                elif ranking_type == 'hps':
+                    ranking_raiders = encounter.get("roles").get("healers").get("characters")
+
+                for ranking_raider in ranking_raiders:
+                    raider = RaiderUtils.get_raider_for_name(ranking_raider.get("name"))
+                    parse_percent = ranking_raider.get("bracketPercent")
+                    event_id = self.get_experienceEvent_id_for_parse_percent(parse_percent)
+                    ExperienceGainSerializer.create_experience_gain(
+                        event_id,
+                        raider.id,
+                        raid_id=self.raid.id,
+                        timestamp=timestamp,
+                        tokens=tokens,
+                    )
 
     def decay_per_boss(self):
         encounters_count = len(self.timestamps_by_enounter_name)
@@ -413,7 +417,6 @@ class GenerateExperienceGainsForRaid:
             """
             # once you get above the second lowest level, don't drop below it again
             if experience > experience_floor:
-                print(experience_floor)
                 floor = experience_floor
             """
 

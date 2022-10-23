@@ -63,10 +63,19 @@ class Queries:
         }
     }"""
 
-    GET_PERFORMANCE_BY_REPORT_ID = """query ($code: String) {
+    GET_PERFORMANCE_BY_REPORT_ID_DPS = """query ($code: String) {
             reportData {
                 report(code: $code) {
-                    rankings
+                    rankings(playerMetric: dps)
+                }
+            }
+        } 
+    """
+
+    GET_PERFORMANCE_BY_REPORT_ID_HPS = """query ($code: String) {
+            reportData {
+                report(code: $code) {
+                    rankings(playerMetric: hps)
                 }
             }
         } 

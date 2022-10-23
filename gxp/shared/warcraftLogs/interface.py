@@ -106,8 +106,14 @@ class WarcraftLogsInterface:
         return response.get("data").get("reportData").get("report")
 
     @staticmethod
-    def get_performance_by_report_id(reportId):
+    def get_performance_by_report_id(reportId, type):
+        
+        if type == 'hps':
+            query = Queries.GET_PERFORMANCE_BY_REPORT_ID_HPS
+        elif type == 'dps':
+            query = Queries.GET_PERFORMANCE_BY_REPORT_ID_DPS
+
         response = WarcraftLogsInterface.__post_grapql_query(
-            Queries.GET_PERFORMANCE_BY_REPORT_ID, {"code": reportId}
+            query, {"code": reportId}
         )
         return response.get("data").get("reportData").get("report")
