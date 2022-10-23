@@ -27,6 +27,14 @@ class Raider(models.Model):
         else:
             return []
 
+    @property
+    def human_joined(self):
+        alts = Raider.objects.filter(main=self.id, join_timestamp__lt=self.join_timestamp)
+        if alts:
+            return alts.first().join_timestamp
+        else:
+            return self.join_timestamp
+
     class Meta:
         db_table = "gxp_raiders"
         ordering = ["join_timestamp"]

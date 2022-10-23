@@ -61,12 +61,14 @@ class RaiderSerializer(serializers.ModelSerializer):
         level = ExperienceLevelSerializer(
             RaiderUtils.calculate_experience_level_for_raider(raider)
         ).data
+        join_timestamp = raider.human_joined
 
         data.update(
             {
                 "totalRaids": total_raids,
                 "experienceMultipler": experience_multipler,
                 "experienceLevel": level,
+                "join_timestamp": join_timestamp,
             }
         )
 

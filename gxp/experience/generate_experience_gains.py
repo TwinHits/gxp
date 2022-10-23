@@ -359,9 +359,7 @@ class GenerateExperienceGainsForRaid:
             self.raid_end_timestamp + 1
         )
 
-        all_raider_mains = Raider.objects.filter(
-            join_timestamp__lte=self.raid.timestamp, main=None
-        )
+        all_raider_mains = [raider for raider in Raider.objects.filter(main=None) if raider.human_joined <= self.raid.timestamp]
         for raider in all_raider_mains:
             ExperienceGainSerializer.create_experience_gain(
                 self.decay_per_boss_event_id,
@@ -412,9 +410,12 @@ class GenerateExperienceGainsForRaid:
             else:
                 experience = new_experience
 
+            """
             # once you get above the second lowest level, don't drop below it again
             if experience > experience_floor:
+                print(experience_floor)
                 floor = experience_floor
+            """
 
         raider.experience = experience
         raider.save()

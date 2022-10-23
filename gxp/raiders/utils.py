@@ -29,7 +29,7 @@ class RaiderUtils:
         return result
 
     def count_total_weeks_for_raider(raider):
-        return SharedUtils.get_weeks_since_timestamp(raider.join_timestamp)
+        return SharedUtils.get_weeks_since_timestamp(raider.human_joined)
 
     def get_raider_for_name(name):
         # Get the main raider for this name
