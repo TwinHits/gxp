@@ -1,5 +1,7 @@
+import logging
+
 class RaidHelperUtils:
     @staticmethod
     def handle_error(err):
-        print("Raid Helper Error: ")
-        print(err)
+        logging.error("Raid Helper Error: ")
+        logging.error(err)

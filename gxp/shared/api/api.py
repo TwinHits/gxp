@@ -1,3 +1,4 @@
+import logging
 import requests
 
 
@@ -14,4 +15,4 @@ class Api:
         if response.status_code == requests.codes.ok:
             return response.json()
         else:
-            print(response.status_code)
+            logging.error(response.status_code)

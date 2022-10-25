@@ -5,6 +5,7 @@
 # Your environment name will be used in naming your resources like VPC, cluster, etc.
 name: test
 type: Environment
+env_file: test.env
 
 # Import your own VPC and subnets or configure how they should be created.
 # network:

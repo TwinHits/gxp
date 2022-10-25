@@ -1,4 +1,5 @@
-from time import time
+import logging
+
 from django.db.models import Q
 
 from gxp.raiders.models import Raider
@@ -240,10 +241,10 @@ class GenerateExperienceGainsForRaid:
             sign_up_experience_value = encounters_count * sign_up_experience_event.value
 
             if response.get("status") == "failed":
-                print(
+                logging.error(
                     f"Failed to get event details from event id {self.raid.log.raidHelperEventId} for logs code {self.raid.log.logsCode} ."
                 )
-                print(response)
+                logging.error(response)
                 return
 
             sign_ups = response.get("signups")
@@ -301,7 +302,7 @@ class GenerateExperienceGainsForRaid:
                 if not next:
                     raider = RaiderUtils.get_raider_for_name(name)
                     if not raider:
-                        print(f"DID NOT FIND RAIDER FOR {name}")
+                        logging.error(f"DID NOT FIND RAIDER FOR {name}")
 
     def performance_experience(self):
         ranking_types = ['dps', 'hps']
@@ -313,7 +314,7 @@ class GenerateExperienceGainsForRaid:
             )
 
             if len(rankings) == 0:
-                print(f"WARNING: {self.raid.log.logsCode} has no parses.")
+                logging.error(f"WARNING: {self.raid.log.logsCode} has no parses.")
 
             for encounter in rankings:
                 encounter_name = self.correct_encounter_name(
@@ -325,7 +326,7 @@ class GenerateExperienceGainsForRaid:
                     timestamp = timestamp + 3  # Offset time a bit for nice history ordering
                 else:
                     # This parse is not for an encounter, so skip
-                    print(
+                    logging.error(
                         f"WARNING {self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings."
                     )
                     continue

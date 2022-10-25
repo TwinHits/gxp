@@ -153,3 +153,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.guildxp.com.s3-website-us-east-1.amazonaws.com",  # s3 bucket
     "http://www.guildxp.com.s3-website-us-east-1.amazonaws.com",
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+ADMINS = ["twinhits@gmail.com"]

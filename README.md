@@ -18,6 +18,7 @@ https://aws.github.io/copilot-cli/docs/manifest/overview/
 The AWS Stack is managed using AWS Copilot.
 Use AWS Copilot CLI for changes
 Deploy using `copilot deploy`. Mine is currently set up in WSL.
+Make sure docker deskop is running.
 
 ## Adding Dependencies
 - Install dependencies using `pipenv install <package>`

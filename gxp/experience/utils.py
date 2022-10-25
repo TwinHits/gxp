@@ -1,3 +1,5 @@
+import logging
+
 from django.forms import model_to_dict
 
 from gxp.shared.utils import SharedUtils
@@ -21,5 +23,5 @@ class ExperienceUtils:
         try:
             return experience_gain.experienceEvent.template.format(**tokens)
         except KeyError as error:
-            print(error)
+            logging.error(error)
             return experience_gain.experienceEvent.template
