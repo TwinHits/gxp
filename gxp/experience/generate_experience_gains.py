@@ -426,6 +426,7 @@ class GenerateExperienceGainsForRaid:
 
     @staticmethod
     def calculate_experience_for_raiders(active=None):
+        logging.error("Test Error for Testing")
         if active is not None:
             raiders = Raider.objects.filter(active=active)
         else:
