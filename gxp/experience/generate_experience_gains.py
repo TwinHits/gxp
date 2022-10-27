@@ -35,6 +35,7 @@ class GenerateExperienceGainsForRaid:
         self.high_performer_event_id = "HIGH_PERFORMANCE"
         self.mid_performer_event_id = "MID_PERFORMANCE"
         self.low_performer_event_id = "LOW_PERFORMANCE"
+        self.healer_tank_low_performer_event_id = "HEALER_TANK_LOW_PERFORMANCE"
 
         self.decay_per_boss_event_id = "DECAY_PER_BOSS"
 
@@ -261,12 +262,6 @@ class GenerateExperienceGainsForRaid:
                     sign_up_state = "Attending"
                 tokens["sign_up"] = sign_up_state
 
-                """
-                pattern = re.compile('[^a-zA-Z0-9/]')
-                name = pattern.sub('', name) 
-                name_parts = name.split("/")
-                """
-
                 # is this name in the attending raiders?
                 next = False
                 for raider in self.raid.raiders.all():
@@ -346,7 +341,7 @@ class GenerateExperienceGainsForRaid:
                     # don't parse grey for tanks and healers, instead use mid
                     event_id = self.get_experienceEvent_id_for_parse_percent(parse_percent)
                     if (event_id == self.low_performer_event_id and ranking_type in ['hps', 'tanks']):
-                        event_id = self.mid_performer_event_id
+                        event_id = self.healer_tank_low_performer_event_id
 
                     ExperienceGainSerializer.create_experience_gain(
                         event_id,
