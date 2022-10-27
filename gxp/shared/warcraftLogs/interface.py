@@ -110,7 +110,7 @@ class WarcraftLogsInterface:
         
         if type == 'hps':
             query = Queries.GET_PERFORMANCE_BY_REPORT_ID_HPS
-        elif type == 'dps':
+        elif type == 'dps' or type == 'tanks':
             query = Queries.GET_PERFORMANCE_BY_REPORT_ID_DPS
 
         response = WarcraftLogsInterface.__post_grapql_query(

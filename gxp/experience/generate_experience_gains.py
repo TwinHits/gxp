@@ -305,7 +305,7 @@ class GenerateExperienceGainsForRaid:
                         logging.error(f"DID NOT FIND RAIDER FOR {name}")
 
     def performance_experience(self):
-        ranking_types = ['dps', 'hps']
+        ranking_types = ['dps', 'hps', 'tanks']
         for ranking_type in ranking_types:
             rankings = (
                 WarcraftLogsInterface.get_performance_by_report_id(self.raid.log.logsCode, ranking_type)
@@ -314,7 +314,7 @@ class GenerateExperienceGainsForRaid:
             )
 
             if len(rankings) == 0:
-                logging.error(f"WARNING: {self.raid.log.logsCode} has no parses.")
+                logging.warning(f"{self.raid.log.logsCode} has no parses.")
 
             for encounter in rankings:
                 encounter_name = self.correct_encounter_name(
@@ -326,22 +326,28 @@ class GenerateExperienceGainsForRaid:
                     timestamp = timestamp + 3  # Offset time a bit for nice history ordering
                 else:
                     # This parse is not for an encounter, so skip
-                    logging.error(
-                        f"WARNING {self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings."
+                    logging.warning(
+                        f"{self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings."
                     )
                     continue
 
                 if ranking_type == 'dps':
-                    dps = encounter.get("roles").get("dps").get("characters")
-                    tanks = encounter.get("roles").get("tanks").get("characters")
-                    ranking_raiders = dps + tanks
+                    ranking_raiders = encounter.get("roles").get("dps").get("characters")
                 elif ranking_type == 'hps':
                     ranking_raiders = encounter.get("roles").get("healers").get("characters")
+                elif ranking_type == 'tanks':
+                    ranking_raiders = encounter.get("roles").get("tanks").get("characters")
+
 
                 for ranking_raider in ranking_raiders:
                     raider = RaiderUtils.get_raider_for_name(ranking_raider.get("name"))
                     parse_percent = ranking_raider.get("bracketPercent")
+
+                    # don't parse grey for tanks and healers, instead use mid
                     event_id = self.get_experienceEvent_id_for_parse_percent(parse_percent)
+                    if (event_id == self.low_performer_event_id and ranking_type in ['hps', 'tanks']):
+                        event_id = self.mid_performer_event_id
+
                     ExperienceGainSerializer.create_experience_gain(
                         event_id,
                         raider.id,
@@ -426,7 +432,6 @@ class GenerateExperienceGainsForRaid:
 
     @staticmethod
     def calculate_experience_for_raiders(active=None):
-        logging.error("Test Error for Testing")
         if active is not None:
             raiders = Raider.objects.filter(active=active)
         else:
