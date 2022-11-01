@@ -36,7 +36,7 @@ class ExperienceGainSerializer(serializers.ModelSerializer):
         queryset=Raid.objects.all(), required=False
     )
     description = serializers.SerializerMethodField()
-    value = serializers.IntegerField(required=False)
+    value = serializers.FloatField(required=False)
 
     def get_description(self, experience_gain):
         description = ExperienceUtils.get_description_from_template(experience_gain)

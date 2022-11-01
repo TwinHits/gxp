@@ -33,6 +33,7 @@ DEBUG = config("DJANGO_DEBUG")
 ALLOWED_HOSTS = [
     "jbm6m3eptm.us-east-1.awsapprunner.com",
     "localhost",
+    "guildxp.com",
 ]
 
 
@@ -152,6 +153,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://jbm6m3eptm.us-east-1.awsapprunner.com:8000",  # Test env
     "https://www.guildxp.com.s3-website-us-east-1.amazonaws.com",  # s3 bucket
     "http://www.guildxp.com.s3-website-us-east-1.amazonaws.com",
+    "http://www.guildxp.com", # Domain name
+    "https://www.guildxp.com", # Domain name SSL
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
