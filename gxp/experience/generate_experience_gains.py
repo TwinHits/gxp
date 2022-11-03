@@ -6,6 +6,7 @@ from gxp.raiders.models import Raider
 from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
 
 from gxp.experience.serializers import ExperienceGainSerializer
+from gxp.raids.models import Raid
 
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
 from gxp.shared.ironforgeAnalyzer.interface import IronforgeAnalyzerInterface
@@ -389,6 +390,32 @@ class GenerateExperienceGainsForRaid:
         return
 
     @staticmethod
+    def update_gain_for_event_changes(gain):
+        """
+        If the event id is in a specific list of event ids that calculate based on something like encounter count, check if they need to be recalculated.
+        """
+        DECAY_PER_BOSS_ID = "DECAY_PER_BOSS";
+        SIGNED_UP_ACCURATELY_ID = "SIGNED_UP_ACCURATELY"
+
+        if gain.experienceEvent.id == DECAY_PER_BOSS_ID:
+            event = ExperienceEvent.objects.get(pk=DECAY_PER_BOSS_ID)
+            raid = Raid.objects.get(pk=gain.raid.id)
+            new_value = event.value * raid.encounters_completed
+            if new_value != gain.value:
+                gain.value = new_value
+                gain.save()
+
+        elif gain.experienceEvent.id == SIGNED_UP_ACCURATELY_ID:
+            event = ExperienceEvent.objects.get(pk=SIGNED_UP_ACCURATELY_ID)
+            raid = Raid.objects.get(pk=gain.raid.id)
+            new_value = event.value * raid.encounters_completed
+            if new_value != gain.value:
+                gain.value = new_value
+                gain.save()
+
+        return gain
+
+    @staticmethod
     def calculate_experience_for_raider(raider):
         gains = ExperienceGain.objects.filter(
             Q(raid__isnull=True) | Q(raid__optional=False), raider=raider
@@ -404,6 +431,8 @@ class GenerateExperienceGainsForRaid:
         floor = 0
         experience = 0
         for gain in gains:
+            gain =   GenerateExperienceGainsForRaid.update_gain_for_event_changes(gain)
+
             if False and gain.multiplied:
                 new_experience = experience + (gain.experience * experience_multipler)
             else:
