@@ -445,11 +445,9 @@ class GenerateExperienceGainsForRaid:
             else:
                 experience = new_experience
 
-            """
             # once you get above the second lowest level, don't drop below it again
             if experience > experience_floor:
                 floor = experience_floor
-            """
 
         raider.experience = experience
         raider.save()
