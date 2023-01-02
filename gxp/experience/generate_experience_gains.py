@@ -337,10 +337,14 @@ class GenerateExperienceGainsForRaid:
 
                 for ranking_raider in ranking_raiders:
                     raider = RaiderUtils.get_raider_for_name(ranking_raider.get("name"))
-                    parse_percent = ranking_raider.get("bracketPercent")
+                    ilvl_percent = ranking_raider.get("bracketPercent")
+                    parse_percent = ranking_raider.get("rankPercent")
+
+                    # take the higher of the two percents
+                    higher_percent = max(ilvl_percent, parse_percent)
 
                     # don't parse grey for tanks and healers, instead use mid
-                    event_id = self.get_experienceEvent_id_for_parse_percent(parse_percent)
+                    event_id = self.get_experienceEvent_id_for_parse_percent(higher_percent)
                     if (event_id == self.low_performer_event_id and ranking_type in ['hps', 'tanks']):
                         event_id = self.healer_tank_low_performer_event_id
 
