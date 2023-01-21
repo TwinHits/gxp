@@ -431,6 +431,7 @@ class GenerateExperienceGainsForRaid:
             ExperienceLevel.objects.last().experience_required
         )
         experience_floor = ExperienceLevel.objects.all()[1].experience_required
+        experience_ceiling = highest_experience_level_experience_required + 75
 
         floor = 0
         experience = 0
@@ -444,8 +445,8 @@ class GenerateExperienceGainsForRaid:
 
             if new_experience < floor:
                 experience = floor
-            elif new_experience > highest_experience_level_experience_required:
-                experience = highest_experience_level_experience_required
+            elif new_experience > experience_ceiling:
+                experience = experience_ceiling
             else:
                 experience = new_experience
 
