@@ -7,6 +7,8 @@ from gxp.experience.serializers import (
     ExperienceLevelSerializer,
 )
 
+from gxp.raiders.models import Raider
+
 from gxp.shared.permissions import IsAuthenticatedOrRead
 
 
@@ -23,9 +25,15 @@ class ExperienceGainsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         raiderId = self.request.query_params.get("raiderId")
-
         if raiderId:
-            self.queryset = self.queryset.filter(raider=raiderId)
+            raider = Raider.objects.get(pk=raiderId)
+            raiders = list(raider.alts)
+            raiders.append(raider)
+            self.queryset = self.queryset.filter(raider__in=raiders)
+
+        experienceEventId = self.request.query_params.get("experienceEvent")
+        if experienceEventId:
+            self.queryset = self.queryset.filter(experienceEvent=experienceEventId)
 
         return self.queryset
 

@@ -334,7 +334,6 @@ class GenerateExperienceGainsForRaid:
                 elif ranking_type == 'tanks':
                     ranking_raiders = encounter.get("roles").get("tanks").get("characters")
 
-
                 for ranking_raider in ranking_raiders:
                     raider = RaiderUtils.get_raider_for_name(ranking_raider.get("name"))
                     ilvl_percent = ranking_raider.get("bracketPercent")
@@ -436,10 +435,13 @@ class GenerateExperienceGainsForRaid:
         floor = 0
         experience = 0
         for gain in gains:
-            gain =   GenerateExperienceGainsForRaid.update_gain_for_event_changes(gain)
+            gain = GenerateExperienceGainsForRaid.update_gain_for_event_changes(gain)
 
             if False and gain.multiplied:
                 new_experience = experience + (gain.experience * experience_multipler)
+            if gain.experienceEvent.id == "MAIN_CHANGE":
+                new_experience = gain.experience;
+                print(f"Changed mains, exp set to {new_experience} from {experience}")
             else:
                 new_experience = experience + gain.experience
 

@@ -5,6 +5,7 @@ from gxp.experience.serializers import ExperienceLevelSerializer
 from gxp.raiders.models import Alias, Raider, Rename
 
 from gxp.raids.constants import ValidationErrors
+from gxp.raiders.change_mains import change_mains
 from gxp.raiders.utils import RaiderUtils
 from gxp.shared.utils import SharedUtils
 
@@ -137,7 +138,9 @@ class RaiderSerializer(serializers.ModelSerializer):
         new_main = validated_data.get("main", instance.main)
         if new_main != instance.main:
 
-            if new_main and (new_main.isAlt or instance.isAlt):
+            if new_main and new_main.isAlt and new_main in instance.alts:
+                change_mains(instance, new_main)
+            if new_main and new_main.isAlt:
                 raise serializers.ValidationError(ValidationErrors.RAIDER_IS_AN_ALT)
 
             instance.main = new_main

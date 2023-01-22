@@ -26,7 +26,7 @@ class Raider(models.Model):
             return Raider.objects.filter(main=self.id)
         else:
             return []
-
+    
     @property
     def human_joined(self):
         alts = Raider.objects.filter(main=self.id, join_timestamp__lt=self.join_timestamp)

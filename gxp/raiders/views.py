@@ -46,7 +46,6 @@ class RaidersViewSet(viewsets.ModelViewSet):
 
         return Response()
 
-
 class AliasesViewSet(viewsets.ModelViewSet):
     queryset = Alias.objects.all()
     serializer_class = AliasSerializer
