@@ -2,7 +2,7 @@ import logging
 
 from django.db.models import Q
 
-from gxp.raiders.models import Raider
+from gxp.raiders.models import Raider, SpecialistRole
 from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
 
 from gxp.experience.serializers import ExperienceGainSerializer
@@ -342,9 +342,9 @@ class GenerateExperienceGainsForRaid:
                     # take the higher of the two percents
                     higher_percent = max(ilvl_percent, parse_percent)
 
-                    # don't parse grey for tanks and healers, instead use mid
+                    # don't parse grey for tanks, healers, specialists
                     event_id = self.get_experienceEvent_id_for_parse_percent(higher_percent)
-                    if (event_id == self.low_performer_event_id and ranking_type in ['hps', 'tanks']):
+                    if (event_id == self.low_performer_event_id and (ranking_type in ['hps', 'tanks'] or SpecialistRole.objects.filter(raider=raider.id, encounter=encounter_name))):
                         event_id = self.healer_tank_low_performer_event_id
 
                     ExperienceGainSerializer.create_experience_gain(

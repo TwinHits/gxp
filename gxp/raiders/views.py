@@ -5,8 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from gxp.experience.generate_experience_gains import GenerateExperienceGainsForRaid
-from gxp.raiders.models import Alias, Raider
-from gxp.raiders.serializers import RaiderSerializer, AliasSerializer
+from gxp.raiders.models import Alias, Raider, SpecialistRole
+from gxp.raiders.serializers import RaiderSerializer, AliasSerializer, SpecialistRoleSerializer
 from gxp.shared.permissions import IsAuthenticatedOrRead
 
 
@@ -46,7 +46,14 @@ class RaidersViewSet(viewsets.ModelViewSet):
 
         return Response()
 
+
 class AliasesViewSet(viewsets.ModelViewSet):
     queryset = Alias.objects.all()
     serializer_class = AliasSerializer
+    permission_classes = [IsAuthenticatedOrRead]
+
+
+class SpecialistRolesViewSet(viewsets.ModelViewSet):
+    queryset = SpecialistRole.objects.all()
+    serializer_class = SpecialistRoleSerializer
     permission_classes = [IsAuthenticatedOrRead]

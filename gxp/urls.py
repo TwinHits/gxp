@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import (
 
 from gxp.quickstart.views import UserViewSet, GroupViewSet
 from gxp.raids.views import LogsViewSet, RaidsViewSet
-from gxp.raiders.views import AliasesViewSet, RaidersViewSet
+from gxp.raiders.views import AliasesViewSet, RaidersViewSet, SpecialistRolesViewSet
 from gxp.experience.views import (
     ExperienceEventsViewSet,
     ExperienceGainsViewSet,
@@ -24,6 +24,7 @@ router.register(r"logs", LogsViewSet)
 
 router.register(r"raiders", RaidersViewSet)
 router.register(r"aliases", AliasesViewSet)
+router.register(r"specialistroles", SpecialistRolesViewSet)
 
 router.register(r"experienceEvents", ExperienceEventsViewSet)
 router.register(r"experienceGains", ExperienceGainsViewSet)

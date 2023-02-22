@@ -62,3 +62,12 @@ class Rename(models.Model):
     class Meta:
         db_table = "gxp_renames"
         ordering = ["raider"]
+
+
+class SpecialistRole(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    raider = models.ForeignKey(Raider, on_delete=models.CASCADE, null=False, related_name="specialist_roles")
+    encounter = models.CharField(max_length=255, null=False, default="")
+
+    class Meta:
+        db_table = "gxp_specialist_roles"
