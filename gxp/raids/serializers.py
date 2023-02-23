@@ -16,6 +16,9 @@ class LogSerializer(serializers.ModelSerializer):
     logsCode = serializers.CharField(required=True, allow_blank=False)
     raidHelperEventId = serializers.CharField(required=False, allow_blank=True)
     active = serializers.BooleanField(required=False, default=True)
+    reserve_raiders = serializers.PrimaryKeyRelatedField(
+        queryset=Raider.objects.all(), required=False, many=True
+    )
 
     def validate_logsCode(self, value):
         if not WarcraftLogsUtils.is_valid_warcraft_logs_id(value):
@@ -32,6 +35,7 @@ class LogSerializer(serializers.ModelSerializer):
             "timestamp",
             "zone",
             "optional",
+            "reserve_raiders",
         ]
 
     def create(self, validated_data):
@@ -63,15 +67,15 @@ class LogSerializer(serializers.ModelSerializer):
         instance.active = validated_data.get("active", instance.active)
         instance.optional = validated_data.get("optional", instance.optional)
 
+        for raider in validated_data.get("reserve_raiders", []):
+            instance.reserve_raiders.add(raider)
+
         instance.save()
         return instance
 
 
 class RaidSerializer(serializers.ModelSerializer):
     optional = serializers.BooleanField(required=False)
-    reserve_raiders = serializers.PrimaryKeyRelatedField(
-        queryset=Raider.objects.all(), required=False, many=True
-    )
     timestamp = serializers.IntegerField(required=False)
     log = LogSerializer(required=False)
     encounters_completed = serializers.IntegerField(required=False)
@@ -82,7 +86,6 @@ class RaidSerializer(serializers.ModelSerializer):
             "id",
             "log",
             "optional",
-            "reserve_raiders",
             "timestamp",
             "encounters_completed",
         ]
@@ -123,9 +126,6 @@ class RaidSerializer(serializers.ModelSerializer):
                 validated_data["encounters_completed"] = encounters_completed
             except Exception as err:
                 raise serializers.ValidationError(err)
-        
-        reserve_raiders = validated_data["reserve_raiders"]
-        del validated_data["reserve_raiders"]
 
         if "timestamp" not in validated_data:
             validated_data["timestamp"] = SharedUtils.get_now_timestamp()
@@ -138,9 +138,6 @@ class RaidSerializer(serializers.ModelSerializer):
         raid = Raid.objects.create(**validated_data)
         for raider in raiders:
             raid.raiders.add(raider)
-
-        for raider in reserve_raiders:
-            raid.reserve_raiders.add(raider)
 
         raid.save()
 

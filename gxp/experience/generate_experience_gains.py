@@ -395,7 +395,7 @@ class GenerateExperienceGainsForRaid:
         timestamp = (
             self.raid_end_timestamp + 2
         )
-        for raider in self.raid.reserve_raiders.all():
+        for raider in self.raid.log.reserve_raiders.all():
             ExperienceGainSerializer.create_experience_gain(
                 self.reserve_per_boss_event_id,
                 raider.id,

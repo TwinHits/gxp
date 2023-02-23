@@ -11,6 +11,9 @@ class Log(models.Model):
     raidHelperEventId = models.CharField(max_length=255, null=True, default="")
     active = models.BooleanField(default=True)
     optional = models.BooleanField(default=True)
+    reserve_raiders = models.ManyToManyField(
+        Raider, related_name="reserve_logs", db_table="gxp_logs_reserve_raiders"
+    )
 
     class Meta:
         db_table = "gxp_logs"
@@ -24,9 +27,6 @@ class Raid(models.Model):
     optional = models.BooleanField(default=True)
     raiders = models.ManyToManyField(
         Raider, related_name="raids", db_table="gxp_raids_raiders"
-    )
-    reserve_raiders = models.ManyToManyField(
-        Raider, related_name="reserve_raids", db_table="gxp_raids_reserve_raiders"
     )
     log = models.ForeignKey(
         Log, on_delete=models.CASCADE, related_name="raid", null=True
