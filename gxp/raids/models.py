@@ -25,6 +25,9 @@ class Raid(models.Model):
     raiders = models.ManyToManyField(
         Raider, related_name="raids", db_table="gxp_raids_raiders"
     )
+    reserve_raiders = models.ManyToManyField(
+        Raider, related_name="reserve_raids", db_table="gxp_raids_reserve_raiders"
+    )
     log = models.ForeignKey(
         Log, on_delete=models.CASCADE, related_name="raid", null=True
     )

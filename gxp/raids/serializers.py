@@ -69,7 +69,7 @@ class LogSerializer(serializers.ModelSerializer):
 
 class RaidSerializer(serializers.ModelSerializer):
     optional = serializers.BooleanField(required=False)
-    raiders = serializers.PrimaryKeyRelatedField(
+    reserve_raiders = serializers.PrimaryKeyRelatedField(
         queryset=Raider.objects.all(), required=False, many=True
     )
     timestamp = serializers.IntegerField(required=False)
@@ -82,7 +82,7 @@ class RaidSerializer(serializers.ModelSerializer):
             "id",
             "log",
             "optional",
-            "raiders",
+            "reserve_raiders",
             "timestamp",
             "encounters_completed",
         ]
@@ -123,6 +123,9 @@ class RaidSerializer(serializers.ModelSerializer):
                 validated_data["encounters_completed"] = encounters_completed
             except Exception as err:
                 raise serializers.ValidationError(err)
+        
+        reserve_raiders = validated_data["reserve_raiders"]
+        del validated_data["reserve_raiders"]
 
         if "timestamp" not in validated_data:
             validated_data["timestamp"] = SharedUtils.get_now_timestamp()
@@ -131,10 +134,14 @@ class RaidSerializer(serializers.ModelSerializer):
             validated_data["optional"] = RaidUtils.is_raid_optional(
                 validated_data.get("timestamp")
             )
-
+ 
         raid = Raid.objects.create(**validated_data)
         for raider in raiders:
             raid.raiders.add(raider)
+
+        for raider in reserve_raiders:
+            raid.reserve_raiders.add(raider)
+
         raid.save()
 
         GenerateExperienceGainsForRaid(raid).generate_all()

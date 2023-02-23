@@ -39,6 +39,7 @@ class GenerateExperienceGainsForRaid:
         self.healer_tank_low_performer_event_id = "HEALER_TANK_LOW_PERFORMANCE"
 
         self.decay_per_boss_event_id = "DECAY_PER_BOSS"
+        self.reserve_per_boss_event_id = "RESERVE_PER_BOSS"
 
         self.previous_expansion_raid_event_id = "PREV_EXPAC_RAID"
 
@@ -61,6 +62,7 @@ class GenerateExperienceGainsForRaid:
             self.sign_ups_raid_experience()
             self.performance_experience()
             self.decay_per_boss()
+            self.reserve_per_boss()
         else:
             self.calculate_experience_last_expansion()
 
@@ -378,6 +380,29 @@ class GenerateExperienceGainsForRaid:
                 timestamp=timestamp,
                 tokens=tokens,
                 value=decay_experience_value,
+            )
+
+    def reserve_per_boss(self):
+        encounters_count = len(self.timestamps_by_enounter_name)
+        tokens = {
+            "encounters_count": encounters_count,
+        }
+
+        reserve_experience_event = ExperienceEvent.objects.get(
+            pk=self.reserve_per_boss_event_id
+        )
+        reserve_experience_value = encounters_count * reserve_experience_event.value
+        timestamp = (
+            self.raid_end_timestamp + 2
+        )
+        for raider in self.raid.reserve_raiders.all():
+            ExperienceGainSerializer.create_experience_gain(
+                self.reserve_per_boss_event_id,
+                raider.id,
+                raid_id=self.raid.id,
+                timestamp=timestamp,
+                tokens=tokens,
+                value=reserve_experience_value,
             )
 
     def calculate_experience_last_expansion(self):

@@ -30,6 +30,14 @@ class RaiderUtils:
 
     def count_total_weeks_for_raider(raider):
         return SharedUtils.get_weeks_since_timestamp(raider.human_joined)
+    
+    def get_main_for_raider(raider):
+        if raider is None:
+            return None
+        elif not raider.isMain:
+            return raider.main
+        else:
+            return raider
 
     def get_raider_for_name(name):
         # Get the main raider for this name
@@ -48,14 +56,12 @@ class RaiderUtils:
             if filter.exists():
                 raider = filter.first()
 
-        if raider is None:
-            return None
-        elif not raider.isMain:
-            return raider.main
-        else:
-            return raider
+        return RaiderUtils.get_main_for_raider(raider)
+      
+    def get_raider_for_id(id):
+        return RaiderUtils.get_main_for_raider(Raider.objects.get(pk=id))
 
-    # Check if the name is the raider, an , or an alias
+    # Check if the name is the raider, a rename, or an alias
     def is_name_for_raider(name, raider):
 
         # Is the name the raider
@@ -80,3 +86,4 @@ class RaiderUtils:
             return True
 
         return False
+
