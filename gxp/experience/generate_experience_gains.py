@@ -253,54 +253,55 @@ class GenerateExperienceGainsForRaid:
 
             sign_ups = response.get("signups")
             for sign_up in sign_ups:
+                # Who is this sign up?
                 name = sign_up.get("name")
+                raider = RaiderUtils.get_raider_for_name(name)
+                if not raider:
+                    logging.error(f"DID NOT FIND RAIDER FOR {name}")
+                    continue
+                print(raider)
+
+                # What was the raider's sign up?
                 sign_up_state = sign_up.get("class")
                 signed_absent = sign_up_state == "Absence"
                 signed_tentative = sign_up_state == "Tentative"
                 signed_late = sign_up_state == "Late"
+                signed_bench = sign_up_state == "Bench"
                 signed_attending = (
-                    not signed_absent and not signed_tentative and not signed_late
+                    not signed_absent and not signed_tentative and not signed_late and not signed_bench
                 )
                 if signed_attending:
                     sign_up_state = "Attending"
+                if signed_bench:
+                    sign_up_state = "Reserve"
                 tokens["sign_up"] = sign_up_state
+                print(sign_up_state)
 
-                # is this name in the attending raiders?
-                next = False
-                for raider in self.raid.raiders.all():
-                    if RaiderUtils.is_name_for_raider(name, raider):
-                        raider_main = RaiderUtils.get_raider_for_name(name)
-                        # If signed up at all and in raid, then +
-                        ExperienceGainSerializer.create_experience_gain(
-                            self.signed_up_accurately_event_id,
-                            raider_main.id,
-                            raid_id=self.raid.id,
-                            timestamp=timestamp,
-                            tokens=tokens,
-                            value=sign_up_experience_value,
-                        )
-                        next = True
-                        break
+                # is this raider in the attending raiders?
+                if raider in self.raid.raiders.all():
+                    # If signed up at all and in raid, then +
+                    ExperienceGainSerializer.create_experience_gain(
+                        self.signed_up_accurately_event_id,
+                        raider.id,
+                        raid_id=self.raid.id,
+                        timestamp=timestamp,
+                        tokens=tokens,
+                        value=sign_up_experience_value,
+                    )
+                    print("got attending exp")
 
-                # since they are not in the attending raiders, then they are absent. Did they mark absent?
-                if not next and signed_absent:
-                    raider = RaiderUtils.get_raider_for_name(name)
-                    if raider:
-                        # If signed absent and not in raid, then +
-                        ExperienceGainSerializer.create_experience_gain(
-                            self.signed_up_accurately_event_id,
-                            raider.id,
-                            raid_id=self.raid.id,
-                            timestamp=timestamp,
-                            tokens=tokens,
-                            value=sign_up_experience_value,
-                        )
-                        next = True
+                # since they are not in the attending raiders, then they are absent. Did they mark absent or bench or are a reserve?
+                elif (signed_absent or signed_bench or raider in self.raid.log.reserve_raiders.all()):
+                    ExperienceGainSerializer.create_experience_gain(
+                        self.signed_up_accurately_event_id,
+                        raider.id,
+                        raid_id=self.raid.id,
+                        timestamp=timestamp,
+                        tokens=tokens,
+                        value=sign_up_experience_value,
+                    )
+                    print("got absent/bench exp")
 
-                if not next:
-                    raider = RaiderUtils.get_raider_for_name(name)
-                    if not raider:
-                        logging.error(f"DID NOT FIND RAIDER FOR {name}")
 
     def performance_experience(self):
         ranking_types = ['dps', 'hps', 'tanks']
