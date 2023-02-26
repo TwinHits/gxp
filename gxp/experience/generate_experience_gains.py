@@ -259,7 +259,6 @@ class GenerateExperienceGainsForRaid:
                 if not raider:
                     logging.error(f"DID NOT FIND RAIDER FOR {name}")
                     continue
-                print(raider)
 
                 # What was the raider's sign up?
                 sign_up_state = sign_up.get("class")
@@ -275,7 +274,6 @@ class GenerateExperienceGainsForRaid:
                 if signed_bench:
                     sign_up_state = "Reserve"
                 tokens["sign_up"] = sign_up_state
-                print(sign_up_state)
 
                 # is this raider in the attending raiders?
                 if raider in self.raid.raiders.all():
@@ -288,7 +286,6 @@ class GenerateExperienceGainsForRaid:
                         tokens=tokens,
                         value=sign_up_experience_value,
                     )
-                    print("got attending exp")
 
                 # since they are not in the attending raiders, then they are absent. Did they mark absent or bench or are a reserve?
                 elif (signed_absent or signed_bench or raider in self.raid.log.reserve_raiders.all()):
@@ -300,7 +297,6 @@ class GenerateExperienceGainsForRaid:
                         tokens=tokens,
                         value=sign_up_experience_value,
                     )
-                    print("got absent/bench exp")
 
 
     def performance_experience(self):
@@ -467,7 +463,6 @@ class GenerateExperienceGainsForRaid:
                 new_experience = experience + (gain.experience * experience_multipler)
             if gain.experienceEvent.id == "MAIN_CHANGE":
                 new_experience = gain.experience;
-                print(f"Changed mains, exp set to {new_experience} from {experience}")
             else:
                 new_experience = experience + gain.experience
 

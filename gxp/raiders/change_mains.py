@@ -5,8 +5,6 @@ from gxp.raiders.constants import MainChangeErrors
 from gxp.experience.serializers import ExperienceGainSerializer
 
 def change_mains(old_main, new_main):
-    print(f"old_main {old_main}")
-    print(f"new_main {new_main}")
     main_change_event_id = "MAIN_CHANGE"
 
     # check if alt is actually alt
