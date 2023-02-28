@@ -55,6 +55,10 @@ class GenerateExperienceGainsForRaid:
 
         self.start_of_expansion = 1665633600 * 1000
 
+        self.consumes_exception_encounters = [
+            "Flame Leviathan",
+        ]
+
     def generate_all(self):
         if self.raid_start_timestamp > self.start_of_expansion:
             self.boss_kill_and_complete_raid_experience()
@@ -153,8 +157,8 @@ class GenerateExperienceGainsForRaid:
         encounter_by_fight_id = {}
         for fight in fights:
             if (
-                fight.get("kill") and fight.get("name") != "Overall"
-            ):  # only care about kills and not overall
+                fight.get("kill") and fight.get("name") != "Overall" and fight.get("name") not in self.consumes_exception_encounters
+            ):  # only care about kills
                 result = [
                     fs for fs in fight.get("fights") if fs.get("kill")
                 ]  # don't care about the attempts
