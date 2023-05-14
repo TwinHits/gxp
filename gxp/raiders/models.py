@@ -34,6 +34,16 @@ class Raider(models.Model):
             return alts.first().join_timestamp
         else:
             return self.join_timestamp
+    
+    @property
+    def name_and_main_name(self):
+        if self.isMain:
+            return self.name
+        else:
+            return f'{self.name} ({self.main.name})'
+
+    def __str__(self):
+        return self.name_and_main_name
 
     class Meta:
         db_table = "gxp_raiders"
