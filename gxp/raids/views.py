@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -23,13 +25,14 @@ class LogsViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["PUT"])
     def pull(self, request):
-
+        logging.info("Pulling logs from warcraftlogs.com.")
         logs = WarcraftLogsInterface.get_logcodes_for_guild()
         new_logs_to_save = []
         for log in logs:
             try:
                 Log.objects.get(pk=log.get("code"))
             except Log.DoesNotExist:
+                logging.infof(f"Saving new log {log.get('code')}")
                 new_logs_to_save.append(
                     {
                         "logsCode": log.get("code"),
@@ -42,6 +45,7 @@ class LogsViewSet(viewsets.ModelViewSet):
 
         serailizer = LogSerializer(data=new_logs_to_save, many=True)
         serailizer.is_valid(raise_exception=True)
+        logging.info(f"Saving {len(new_logs_to_save)} new logs.")
         serailizer.save()
 
         return Response(serailizer.data)

@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import serializers
 
 from gxp.raids.constants import ValidationErrors
@@ -39,6 +41,7 @@ class LogSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
+        logging.info(f"Creating new log for {validated_data.get('logsCode')}")
         if Log.objects.filter(logsCode=validated_data.get("logsCode")):
             raise serializers.ValidationError(
                 ValidationErrors.WARCRAFT_LOGS_ID_LOG_ALREADY_EXISTS
@@ -56,6 +59,7 @@ class LogSerializer(serializers.ModelSerializer):
         validated_data["optional"] = RaidUtils.is_raid_optional(
             validated_data.get("timestamp")
         )
+        logging.info(f'Log {validated_data.get("logsCode")} for {validated_data["zone"]} at {validated_data["time_stamp"]} is {"optional" if validated_data["optional"] else "not optional"} ')
 
         log = Log.objects.create(**validated_data)
         return log
@@ -95,6 +99,7 @@ class RaidSerializer(serializers.ModelSerializer):
         if "log" in validated_data:
 
             logs_code = validated_data["log"].get("logsCode")
+            logging.info(f"Creating raid log for {logs_code}.")
 
             if Raid.objects.filter(log__logsCode=logs_code):
                 raise serializers.ValidationError(
@@ -139,6 +144,10 @@ class RaidSerializer(serializers.ModelSerializer):
         for raider in raiders:
             raid.raiders.add(raider)
 
+
+        logging.info(f'Raid {logs_code} is an {"optional" if validated_data["optional"] else "main stage"} raid in {validated_data["zone"]} for event {log.raidHelperEventId} at {validated_data["timestamp"]}.')
+        raiders_list = "".join(['\n\t' + raider.name_and_main_name for raider in list(raid.raiders.all())])
+        logging.info(f"It was attended by {raiders_list}")
         raid.save()
 
         GenerateExperienceGainsForRaid(raid).generate_all()

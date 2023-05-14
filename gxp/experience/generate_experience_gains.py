@@ -18,6 +18,7 @@ from gxp.raiders.utils import RaiderUtils
 class GenerateExperienceGainsForRaid:
     def __init__(self, raid):
         self.raid = raid
+        self.logsCode = self.raid.log.logsCode
 
         self.complete_raid_event_id = "COMPLETE_RAID"
 
@@ -48,6 +49,7 @@ class GenerateExperienceGainsForRaid:
         self.corrected_encounter_names = {
             "Terestrian Illhoof": "Terestian Illhoof",
             "Zul'jin": "Zul'Jin",
+            "The Iron Council": "The Assembly of Iron",
         }
 
         self.raid_start_timestamp = self.raid.timestamp
@@ -61,6 +63,7 @@ class GenerateExperienceGainsForRaid:
 
     def generate_all(self):
         if self.raid_start_timestamp > self.start_of_expansion:
+            logging.info(f"Calculating GXP for {self.logsCode}...\n ---")
             self.boss_kill_and_complete_raid_experience()
             self.flask_and_consumes_raid_experience()
             self.sign_ups_raid_experience()
@@ -71,6 +74,7 @@ class GenerateExperienceGainsForRaid:
             self.calculate_experience_last_expansion()
 
         self.calculate_experience_for_raiders(True)
+        logging.info(f"GXP completed for {self.logsCode}.\n ---")
 
     def get_experienceEvent_id_for_parse_percent(self, parse_percent):
         if parse_percent <= 25:
@@ -90,9 +94,10 @@ class GenerateExperienceGainsForRaid:
             return encounter_name
 
     def boss_kill_and_complete_raid_experience(self):
+        logging.info(f"Calculating boss kill and raid complete GXP for {self.logsCode}...")
 
         report = WarcraftLogsInterface.get_raid_kills_by_report_id(
-            self.raid.log.logsCode
+            self.logsCode
         )
 
         actors = report.get("masterData").get(
@@ -147,9 +152,10 @@ class GenerateExperienceGainsForRaid:
                 )
 
     def flask_and_consumes_raid_experience(self):
+        logging.info(f"Calculating consumes GXP for {self.logsCode}...")
 
         consumes_report = IronforgeAnalyzerInterface.get_consumes_for_report(
-            self.raid.log.logsCode
+            self.logsCode
         )
 
         # build encounter look up map of kills
@@ -228,6 +234,7 @@ class GenerateExperienceGainsForRaid:
                         )
 
     def sign_ups_raid_experience(self):
+        logging.info(f"Calculating sign up GXP for {self.logsCode}...")
 
         if self.raid.log.raidHelperEventId:
             response = RaidHelperInterface.get_sign_ups_for_event_id(
@@ -250,7 +257,7 @@ class GenerateExperienceGainsForRaid:
 
             if response.get("status") == "failed":
                 logging.error(
-                    f"Failed to get event details from event id {self.raid.log.raidHelperEventId} for logs code {self.raid.log.logsCode} ."
+                    f"Failed to get event details from event id {self.raid.log.raidHelperEventId} for logs code {self.logsCode} ."
                 )
                 logging.error(response)
                 return
@@ -261,7 +268,7 @@ class GenerateExperienceGainsForRaid:
                 name = sign_up.get("name")
                 raider = RaiderUtils.get_raider_for_name(name)
                 if not raider:
-                    logging.error(f"DID NOT FIND RAIDER FOR {name}")
+                    logging.error(f"Did not find raider for name {name}. Add {name} as an alias for the correct raider.")
                     continue
 
                 # What was the raider's sign up?
@@ -304,16 +311,18 @@ class GenerateExperienceGainsForRaid:
 
 
     def performance_experience(self):
+        logging.info(f"Calculating performance GXP for {self.logsCode}...")
+
         ranking_types = ['dps', 'hps', 'tanks']
         for ranking_type in ranking_types:
             rankings = (
-                WarcraftLogsInterface.get_performance_by_report_id(self.raid.log.logsCode, ranking_type)
+                WarcraftLogsInterface.get_performance_by_report_id(self.logsCode, ranking_type)
                 .get("rankings")
                 .get("data")
             )
 
             if len(rankings) == 0:
-                logging.warning(f"{self.raid.log.logsCode} has no parses.")
+                logging.warning(f"{self.logsCode} has no parses.")
 
             for encounter in rankings:
                 encounter_name = self.correct_encounter_name(
@@ -326,7 +335,7 @@ class GenerateExperienceGainsForRaid:
                 else:
                     # This parse is not for an encounter, so skip
                     logging.warning(
-                        f"{self.raid.log.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings."
+                        f"{self.logsCode} is missing timestamp by encounter name for {encounter_name} for rankings. Add {encounter_name} as the key to `corrected_encounter_names` with a value from {self.timestamps_by_enounter_name}"
                     )
                     continue
 
@@ -359,6 +368,8 @@ class GenerateExperienceGainsForRaid:
                     )
 
     def decay_per_boss(self):
+        logging.info(f"Calculating GXP decay for {self.logsCode}...")
+
         encounters_count = len(self.timestamps_by_enounter_name)
         tokens = {
             "encounters_count": encounters_count,
@@ -384,6 +395,8 @@ class GenerateExperienceGainsForRaid:
             )
 
     def reserve_per_boss(self):
+        logging.info(f"Calculating reserve GXP for {self.logsCode}...")
+
         encounters_count = len(self.timestamps_by_enounter_name)
         tokens = {
             "encounters_count": encounters_count,
@@ -407,6 +420,8 @@ class GenerateExperienceGainsForRaid:
             )
 
     def calculate_experience_last_expansion(self):
+        logging.info(f"Calculating GXP for a previous expansion raid {self.logsCode}...")
+
         tokens = {"zone": self.raid.zone}
         for raider in self.raid.raiders.all():
             ExperienceGainSerializer.create_experience_gain(
@@ -486,6 +501,8 @@ class GenerateExperienceGainsForRaid:
 
     @staticmethod
     def calculate_experience_for_raiders(active=None):
+        logging.info(f'Recalculating GXP for {"active" if active else "all"} raiders...')
+
         if active is not None:
             raiders = Raider.objects.filter(active=active)
         else:
@@ -493,3 +510,5 @@ class GenerateExperienceGainsForRaid:
 
         for raider in raiders:
             GenerateExperienceGainsForRaid.calculate_experience_for_raider(raider)
+
+        logging.info(f'GXP recalculation for {"active" if active else "all"} raiders complete.')
