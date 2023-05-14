@@ -204,7 +204,7 @@ LOGGING = {
         },
         'django.server': {
             'handlers': ['django.server'],
-            'level': 'INFO',
+            'level': 'WARN',
             'propagate': False,
         },
     }
