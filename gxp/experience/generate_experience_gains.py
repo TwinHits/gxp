@@ -3,46 +3,23 @@ import logging
 from django.db.models import Q
 
 from gxp.raiders.models import Raider, SpecialistRole
-from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
+from gxp.raiders.utils import RaiderUtils
 
+from gxp.experience.models import ExperienceEvent, ExperienceGain, ExperienceLevel
+from gxp.experience.constants import ExperienceEventKeys, BossKillZoneMultiplers
 from gxp.experience.serializers import ExperienceGainSerializer
+
 from gxp.raids.models import Raid
 
 from gxp.shared.warcraftLogs.interface import WarcraftLogsInterface
 from gxp.shared.ironforgeAnalyzer.interface import IronforgeAnalyzerInterface
 from gxp.shared.raidHelper.interface import RaidHelperInterface
 
-from gxp.raiders.utils import RaiderUtils
-
 
 class GenerateExperienceGainsForRaid:
     def __init__(self, raid):
         self.raid = raid
         self.logsCode = self.raid.log.logsCode
-
-        self.complete_raid_event_id = "COMPLETE_RAID"
-
-        self.boss_kill_event_id = "BOSS_KILL"
-        self.missed_boss_kill_event_id = "MISSED_BOSS_KILL"
-
-        self.food_on_event_id = "BOSS_KILL_FOOD"
-        self.food_off_event_id = "BOSS_KILL_NO_FOOD"
-        self.flask_on_event_id = "BOSS_KILL_FLASK"
-        self.flask_off_event_id = "BOSS_KILL_NO_FLASK"
-
-        self.signed_up_accurately_event_id = "SIGNED_UP_ACCURATELY"
-        self.signed_up_inaccurately_event_id = "SIGNED_UP_INACCURATELY"
-
-        self.top_performer_event_id = "TOP_PERFORMANCE"
-        self.high_performer_event_id = "HIGH_PERFORMANCE"
-        self.mid_performer_event_id = "MID_PERFORMANCE"
-        self.low_performer_event_id = "LOW_PERFORMANCE"
-        self.healer_tank_low_performer_event_id = "HEALER_TANK_LOW_PERFORMANCE"
-
-        self.decay_per_boss_event_id = "DECAY_PER_BOSS"
-        self.reserve_per_boss_event_id = "RESERVE_PER_BOSS"
-
-        self.previous_expansion_raid_event_id = "PREV_EXPAC_RAID"
 
         self.timestamps_by_enounter_name = {}
 
@@ -78,13 +55,13 @@ class GenerateExperienceGainsForRaid:
 
     def get_experienceEvent_id_for_parse_percent(self, parse_percent):
         if parse_percent <= 25:
-            return self.low_performer_event_id
+            return ExperienceEventKeys.LOW_PERFORMER_EVENT_ID
         elif parse_percent <= 50:
-            return self.mid_performer_event_id
+            return ExperienceEventKeys.MID_PERFORMER_EVENT_ID
         elif parse_percent <= 75:
-            return self.high_performer_event_id
+            return ExperienceEventKeys.HIGH_PERFORMER_EVENT_ID
         elif parse_percent <= 100:
-            return self.top_performer_event_id
+            return ExperienceEventKeys.TOP_PERFORMER_EVENT_ID
 
     def correct_encounter_name(self, encounter_name):
         correct_encounter_name = self.corrected_encounter_names.get(encounter_name)
@@ -133,18 +110,19 @@ class GenerateExperienceGainsForRaid:
             raider = RaiderUtils.get_raider_for_name(name)
             for tokens in reversed(participating_encounters):
                 ExperienceGainSerializer.create_experience_gain(
-                    self.boss_kill_event_id,
+                    ExperienceEventKeys.BOSS_KILL_EVENT_ID,
                     raider.id,
                     raid_id=self.raid.id,
                     timestamp=tokens.get("enounter_end_timestamp"),
                     tokens=tokens,
+                    value=GenerateExperienceGainsForRaid.get_boss_kill_experience_for_zone(self.raid.zone),
                 )
             if len(participating_encounters) >= number_of_encounters:
                 complete_raid_tokens = {
                     "zone": self.raid.zone,
                 }
                 ExperienceGainSerializer.create_experience_gain(
-                    self.complete_raid_event_id,
+                    ExperienceEventKeys.COMPLETE_RAID_EVENT_ID,
                     raider.id,
                     raid_id=self.raid.id,
                     timestamp=self.raid_end_timestamp,
@@ -200,7 +178,7 @@ class GenerateExperienceGainsForRaid:
                     )
                     if flask:
                         ExperienceGainSerializer.create_experience_gain(
-                            self.flask_on_event_id,
+                            ExperienceEventKeys.FLASK_ON_EVENT_ID,
                             raider.id,
                             raid_id=self.raid.id,
                             timestamp=flask_timestamp,
@@ -208,7 +186,7 @@ class GenerateExperienceGainsForRaid:
                         )
                     else:
                         ExperienceGainSerializer.create_experience_gain(
-                            self.flask_off_event_id,
+                            ExperienceEventKeys.FLASK_OFF_EVENT_ID,
                             raider.id,
                             raid_id=self.raid.id,
                             timestamp=flask_timestamp,
@@ -218,7 +196,7 @@ class GenerateExperienceGainsForRaid:
                     food_timestamp = encounter.get("timestamp") + 2
                     if food:
                         ExperienceGainSerializer.create_experience_gain(
-                            self.food_on_event_id,
+                            ExperienceEventKeys.FOOD_ON_EVENT_ID,
                             raider.id,
                             raid_id=self.raid.id,
                             timestamp=food_timestamp,
@@ -226,7 +204,7 @@ class GenerateExperienceGainsForRaid:
                         )
                     else:
                         ExperienceGainSerializer.create_experience_gain(
-                            self.food_off_event_id,
+                            ExperienceEventKeys.FOOD_OFF_EVENT_ID,
                             raider.id,
                             raid_id=self.raid.id,
                             timestamp=food_timestamp,
@@ -290,7 +268,7 @@ class GenerateExperienceGainsForRaid:
                 if raider in self.raid.raiders.all():
                     # If signed up at all and in raid, then +
                     ExperienceGainSerializer.create_experience_gain(
-                        self.signed_up_accurately_event_id,
+                        ExperienceEventKeys.SIGNED_UP_ACCURATELY_EVENT_ID,
                         raider.id,
                         raid_id=self.raid.id,
                         timestamp=timestamp,
@@ -301,7 +279,7 @@ class GenerateExperienceGainsForRaid:
                 # since they are not in the attending raiders, then they are absent. Did they mark absent or bench or are a reserve?
                 elif (signed_absent or signed_bench or raider in self.raid.log.reserve_raiders.all()):
                     ExperienceGainSerializer.create_experience_gain(
-                        self.signed_up_accurately_event_id,
+                        ExperienceEventKeys.SIGNED_UP_ACCURATELY_EVENT_ID,
                         raider.id,
                         raid_id=self.raid.id,
                         timestamp=timestamp,
@@ -356,8 +334,8 @@ class GenerateExperienceGainsForRaid:
 
                     # don't parse grey for tanks, healers, specialists
                     event_id = self.get_experienceEvent_id_for_parse_percent(higher_percent)
-                    if (event_id == self.low_performer_event_id and (ranking_type in ['hps', 'tanks'] or SpecialistRole.objects.filter(raider=raider.id, encounter=encounter_name))):
-                        event_id = self.healer_tank_low_performer_event_id
+                    if (event_id == ExperienceEventKeys.HEALER_TANK_LOW_PERFORMER_EVENT_ID and (ranking_type in ['hps', 'tanks'] or SpecialistRole.objects.filter(raider=raider.id, encounter=encounter_name))):
+                        event_id = ExperienceEventKeys.HEALER_TANK_LOW_PERFORMER_EVENT_ID
 
                     ExperienceGainSerializer.create_experience_gain(
                         event_id,
@@ -386,7 +364,7 @@ class GenerateExperienceGainsForRaid:
         all_raider_mains = [raider for raider in Raider.objects.filter(main=None) if raider.human_joined <= self.raid.timestamp]
         for raider in all_raider_mains:
             ExperienceGainSerializer.create_experience_gain(
-                self.decay_per_boss_event_id,
+                ExperienceEventKeys.DECAY_PER_BOSS_EVENT_ID,
                 raider.id,
                 raid_id=self.raid.id,
                 timestamp=timestamp,
@@ -403,7 +381,7 @@ class GenerateExperienceGainsForRaid:
         }
 
         reserve_experience_event = ExperienceEvent.objects.get(
-            pk=self.reserve_per_boss_event_id
+            pk=ExperienceEventKeys.DECAY_PER_BOSS_EVENT_ID
         )
         reserve_experience_value = encounters_count * reserve_experience_event.value
         timestamp = (
@@ -411,7 +389,7 @@ class GenerateExperienceGainsForRaid:
         )
         for raider in self.raid.log.reserve_raiders.all():
             ExperienceGainSerializer.create_experience_gain(
-                self.reserve_per_boss_event_id,
+                ExperienceEventKeys.RESERVE_PER_BOSS_EVENT_ID,
                 raider.id,
                 raid_id=self.raid.id,
                 timestamp=timestamp,
@@ -425,7 +403,7 @@ class GenerateExperienceGainsForRaid:
         tokens = {"zone": self.raid.zone}
         for raider in self.raid.raiders.all():
             ExperienceGainSerializer.create_experience_gain(
-                self.previous_expansion_raid_event_id,
+                ExperienceEventKeys.PREVIOUS_EXPANSION_RAID_EVENT_ID,
                 raider.id,
                 raid_id=self.raid.id,
                 timestamp=self.raid_start_timestamp,
@@ -434,23 +412,29 @@ class GenerateExperienceGainsForRaid:
         return
 
     @staticmethod
+    def get_boss_kill_experience_for_zone(zone):
+
+        experience_event_value = ExperienceEvent.objects.get(pk=ExperienceEventKeys.BOSS_KILL_EVENT_ID).value
+        multipler = BossKillZoneMultiplers.by_raid[zone]
+
+        return experience_event_value * multipler
+
+    @staticmethod
     def update_gain_for_event_changes(gain):
         """
         If the event id is in a specific list of event ids that calculate based on something like encounter count, check if they need to be recalculated.
         """
-        DECAY_PER_BOSS_ID = "DECAY_PER_BOSS";
-        SIGNED_UP_ACCURATELY_ID = "SIGNED_UP_ACCURATELY"
 
-        if gain.experienceEvent.id == DECAY_PER_BOSS_ID:
-            event = ExperienceEvent.objects.get(pk=DECAY_PER_BOSS_ID)
+        if gain.experienceEvent.id == ExperienceEventKeys.DECAY_PER_BOSS_ID:
+            event = ExperienceEvent.objects.get(pk=ExperienceEventKeys.DECAY_PER_BOSS_ID)
             raid = Raid.objects.get(pk=gain.raid.id)
             new_value = event.value * raid.encounters_completed
             if new_value != gain.value:
                 gain.value = new_value
                 gain.save()
 
-        elif gain.experienceEvent.id == SIGNED_UP_ACCURATELY_ID:
-            event = ExperienceEvent.objects.get(pk=SIGNED_UP_ACCURATELY_ID)
+        elif gain.experienceEvent.id == ExperienceEventKeys.SIGNED_UP_ACCURATELY_ID:
+            event = ExperienceEvent.objects.get(pk=ExperienceEventKeys.SIGNED_UP_ACCURATELY_ID)
             raid = Raid.objects.get(pk=gain.raid.id)
             new_value = event.value * raid.encounters_completed
             if new_value != gain.value:
