@@ -20,11 +20,11 @@ class ExperienceEventKeys:
 
 class BossKillZoneMultiplers:
     NAXXRAMAS = 1
-    ULDUAR = 1.2
-    TRIAL_OF_THE_CRUSADER = 1.1
+    ULDUAR = 2
+    TRIAL_OF_THE_CRUSADER = 1.5
 
     by_raid = {
         "Naxx / Sarth / Maly": NAXXRAMAS,
-        "Ulduar": NAXXRAMAS,
+        "Ulduar": ULDUAR,
         "TrIal of the Crusader": TRIAL_OF_THE_CRUSADER
     }
