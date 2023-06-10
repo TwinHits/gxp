@@ -32,7 +32,7 @@ class LogsViewSet(viewsets.ModelViewSet):
             try:
                 Log.objects.get(pk=log.get("code"))
             except Log.DoesNotExist:
-                logging.infof(f"Saving new log {log.get('code')}")
+                logging.info(f"Saving new log {log.get('code')}")
                 new_logs_to_save.append(
                     {
                         "logsCode": log.get("code"),

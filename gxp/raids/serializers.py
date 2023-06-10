@@ -59,7 +59,7 @@ class LogSerializer(serializers.ModelSerializer):
         validated_data["optional"] = RaidUtils.is_raid_optional(
             validated_data.get("timestamp")
         )
-        logging.info(f'Log {validated_data.get("logsCode")} for {validated_data["zone"]} at {validated_data["time_stamp"]} is {"optional" if validated_data["optional"] else "not optional"} ')
+        logging.info(f'Log {validated_data.get("logsCode")} for {validated_data["zone"]} at {validated_data["timestamp"]} is {"optional" if validated_data["optional"] else "not optional"} ')
 
         log = Log.objects.create(**validated_data)
         return log
