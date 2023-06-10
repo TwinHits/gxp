@@ -229,11 +229,11 @@ class GenerateExperienceGainsForRaid:
             }
 
             sign_up_experience_event = ExperienceEvent.objects.get(
-                pk=self.signed_up_accurately_event_id
+                pk=ExperienceEventKeys.SIGNED_UP_ACCURATELY_EVENT_ID
             )
             sign_up_experience_value = encounters_count * sign_up_experience_event.value
 
-            if response.get("status") == "failed":
+            if not response or response.get("status") == "failed":
                 logging.error(
                     f"Failed to get event details from event id {self.raid.log.raidHelperEventId} for logs code {self.logsCode} ."
                 )
@@ -354,7 +354,7 @@ class GenerateExperienceGainsForRaid:
         }
 
         decay_experience_event = ExperienceEvent.objects.get(
-            pk=self.decay_per_boss_event_id
+            pk=ExperienceEventKeys.DECAY_PER_BOSS_EVENT_ID
         )
         decay_experience_value = encounters_count * decay_experience_event.value
         timestamp = (
@@ -363,14 +363,20 @@ class GenerateExperienceGainsForRaid:
 
         all_raider_mains = [raider for raider in Raider.objects.filter(main=None) if raider.human_joined <= self.raid.timestamp]
         for raider in all_raider_mains:
-            ExperienceGainSerializer.create_experience_gain(
-                ExperienceEventKeys.DECAY_PER_BOSS_EVENT_ID,
-                raider.id,
-                raid_id=self.raid.id,
-                timestamp=timestamp,
-                tokens=tokens,
-                value=decay_experience_value,
-            )
+            if raider.experience != ExperienceLevel.objects.get_experience_floor() and raider.experience != 0:
+                consecutive_missed_raids = Raid.objects.get_count_of_consecutive_raids_missed_for_raider(raider)
+                tokens["consecutive_missed_raids"] = consecutive_missed_raids
+
+                decay_multiplier = 1 + consecutive_missed_raids/10
+                decay_experience_value_multipled = decay_experience_value * decay_multiplier
+                ExperienceGainSerializer.create_experience_gain(
+                    ExperienceEventKeys.DECAY_PER_BOSS_EVENT_ID,
+                    raider.id,
+                    raid_id=self.raid.id,
+                    timestamp=timestamp,
+                    tokens=tokens,
+                    value=decay_experience_value_multipled,
+                )
 
     def reserve_per_boss(self):
         logging.info(f"Calculating reserve GXP for {self.logsCode}...")
@@ -381,7 +387,7 @@ class GenerateExperienceGainsForRaid:
         }
 
         reserve_experience_event = ExperienceEvent.objects.get(
-            pk=ExperienceEventKeys.DECAY_PER_BOSS_EVENT_ID
+            pk=ExperienceEventKeys.RESERVE_PER_BOSS_EVENT_ID
         )
         reserve_experience_value = encounters_count * reserve_experience_event.value
         timestamp = (
@@ -416,32 +422,7 @@ class GenerateExperienceGainsForRaid:
 
         experience_event_value = ExperienceEvent.objects.get(pk=ExperienceEventKeys.BOSS_KILL_EVENT_ID).value
         multipler = BossKillZoneMultiplers.by_raid[zone]
-
         return experience_event_value * multipler
-
-    @staticmethod
-    def update_gain_for_event_changes(gain):
-        """
-        If the event id is in a specific list of event ids that calculate based on something like encounter count, check if they need to be recalculated.
-        """
-
-        if gain.experienceEvent.id == ExperienceEventKeys.DECAY_PER_BOSS_ID:
-            event = ExperienceEvent.objects.get(pk=ExperienceEventKeys.DECAY_PER_BOSS_ID)
-            raid = Raid.objects.get(pk=gain.raid.id)
-            new_value = event.value * raid.encounters_completed
-            if new_value != gain.value:
-                gain.value = new_value
-                gain.save()
-
-        elif gain.experienceEvent.id == ExperienceEventKeys.SIGNED_UP_ACCURATELY_ID:
-            event = ExperienceEvent.objects.get(pk=ExperienceEventKeys.SIGNED_UP_ACCURATELY_ID)
-            raid = Raid.objects.get(pk=gain.raid.id)
-            new_value = event.value * raid.encounters_completed
-            if new_value != gain.value:
-                gain.value = new_value
-                gain.save()
-
-        return gain
 
     @staticmethod
     def calculate_experience_for_raider(raider):
@@ -460,8 +441,6 @@ class GenerateExperienceGainsForRaid:
         floor = 0
         experience = 0
         for gain in gains:
-            gain = GenerateExperienceGainsForRaid.update_gain_for_event_changes(gain)
-
             if False and gain.multiplied:
                 new_experience = experience + (gain.experience * experience_multipler)
             if gain.experienceEvent.id == "MAIN_CHANGE":

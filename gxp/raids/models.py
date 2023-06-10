@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 
 from gxp.raiders.models import Raider
+from gxp.raids.managers import RaidManager
 
 
 class Log(models.Model):
@@ -21,6 +22,7 @@ class Log(models.Model):
 
 
 class Raid(models.Model):
+    objects = RaidManager()
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     timestamp = models.IntegerField()
     zone = models.CharField(max_length=255, null=True, default="")

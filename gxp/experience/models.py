@@ -1,10 +1,10 @@
-from pyexpat import model
 import uuid
 from django.db import models
 
 from gxp.raids.models import Raid
 from gxp.raiders.models import Raider
 
+from gxp.experience.managers import ExperienceLevelManager
 
 class ExperienceEvent(models.Model):
     id = models.CharField(primary_key=True, max_length=255)
@@ -53,6 +53,8 @@ class ExperienceGain(models.Model):
 
 
 class ExperienceLevel(models.Model):
+    objects = ExperienceLevelManager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     experience_required = models.IntegerField()
