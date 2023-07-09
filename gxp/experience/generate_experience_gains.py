@@ -27,6 +27,8 @@ class GenerateExperienceGainsForRaid:
             "Terestrian Illhoof": "Terestian Illhoof",
             "Zul'jin": "Zul'Jin",
             "The Iron Council": "The Assembly of Iron",
+            "Northrend Beasts": "The Northrend Beasts",
+            "The Northrend Beasts'": "The Northrend Beasts",
         }
 
         self.raid_start_timestamp = self.raid.timestamp

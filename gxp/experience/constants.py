@@ -22,9 +22,11 @@ class BossKillZoneMultiplers:
     NAXXRAMAS = 1
     ULDUAR = 2
     TRIAL_OF_THE_CRUSADER = 1.5
+    ONYXIA = 1.5
 
     by_raid = {
         "Naxx / Sarth / Maly": NAXXRAMAS,
         "Ulduar": ULDUAR,
-        "Trial of the Crusader": TRIAL_OF_THE_CRUSADER
+        "Trial of the Crusader": TRIAL_OF_THE_CRUSADER,
+        "Onyxia": ONYXIA,
     }
