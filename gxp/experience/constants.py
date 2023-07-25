@@ -21,7 +21,7 @@ class ExperienceEventKeys:
 class BossKillZoneMultiplers:
     NAXXRAMAS = 1
     ULDUAR = 2
-    TRIAL_OF_THE_CRUSADER = 1.5
+    TRIAL_OF_THE_CRUSADER = 5
     ONYXIA = 1.5
 
     by_raid = {
