@@ -21,6 +21,7 @@ class LogSerializer(serializers.ModelSerializer):
     reserve_raiders = serializers.PrimaryKeyRelatedField(
         queryset=Raider.objects.all(), required=False, many=True
     )
+    split_run = serializers.BooleanField(required=False, default=False)
 
     def validate_logsCode(self, value):
         if not WarcraftLogsUtils.is_valid_warcraft_logs_id(value):
@@ -38,6 +39,7 @@ class LogSerializer(serializers.ModelSerializer):
             "zone",
             "optional",
             "reserve_raiders",
+            "split_run"
         ]
 
     def create(self, validated_data):
@@ -70,6 +72,7 @@ class LogSerializer(serializers.ModelSerializer):
         )
         instance.active = validated_data.get("active", instance.active)
         instance.optional = validated_data.get("optional", instance.optional)
+        instance.split_run = validated_data.get("split_run", instance.split_run)
 
         for raider in validated_data.get("reserve_raiders", []):
             instance.reserve_raiders.add(raider)

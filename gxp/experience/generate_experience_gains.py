@@ -20,6 +20,7 @@ class GenerateExperienceGainsForRaid:
     def __init__(self, raid):
         self.raid = raid
         self.logsCode = self.raid.log.logsCode
+        self.split_run = self.raid.log.split_run
 
         self.timestamps_by_enounter_name = {}
 
@@ -349,6 +350,7 @@ class GenerateExperienceGainsForRaid:
 
     def decay_per_boss(self):
         logging.info(f"Calculating GXP decay for {self.logsCode}...")
+        logging.info(f"{self.logsCode} is {'a' if self.split_run else 'not a'} split run.")
 
         encounters_count = len(self.timestamps_by_enounter_name)
         tokens = {
@@ -363,8 +365,15 @@ class GenerateExperienceGainsForRaid:
             self.raid_end_timestamp + 1
         )
 
-        all_raider_mains = [raider for raider in Raider.objects.filter(main=None) if raider.human_joined <= self.raid.timestamp]
-        for raider in all_raider_mains:
+        # If it's a split run, skip decay since we can't tell who was in the other run
+        raiders_to_decay = []
+        if not self.split_run:
+            all_raider_mains = [raider for raider in Raider.objects.filter(main=None) if raider.human_joined <= self.raid.timestamp]
+            raiders_to_decay = all_raider_mains
+        else:
+            raiders_to_decay = self.raid.raiders.all()
+
+        for raider in raiders_to_decay:
             if raider.experience != ExperienceLevel.objects.get_experience_floor() and raider.experience != 0:
                 consecutive_missed_raids = Raid.objects.get_count_of_consecutive_raids_missed_for_raider(raider)
                 tokens["consecutive_missed_raids"] = consecutive_missed_raids

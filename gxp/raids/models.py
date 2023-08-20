@@ -15,6 +15,7 @@ class Log(models.Model):
     reserve_raiders = models.ManyToManyField(
         Raider, related_name="reserve_logs", db_table="gxp_logs_reserve_raiders"
     )
+    split_run = models.BooleanField(default=False)
 
     class Meta:
         db_table = "gxp_logs"
