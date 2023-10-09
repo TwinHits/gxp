@@ -45,7 +45,6 @@ class GenerateExperienceGainsForRaid:
         if self.raid_start_timestamp > self.start_of_expansion:
             logging.info(f"Calculating GXP for {self.logsCode}...\n ---")
             self.boss_kill_and_complete_raid_experience()
-            self.flask_and_consumes_raid_experience()
             self.sign_ups_raid_experience()
             self.performance_experience()
             self.decay_per_boss()
@@ -120,6 +119,22 @@ class GenerateExperienceGainsForRaid:
                     tokens=tokens,
                     value=GenerateExperienceGainsForRaid.get_boss_kill_experience_for_zone(self.raid.zone),
                 )
+                # Since Ironforge Pro Analyzer no longer exists, just add food and flask GXP after the boss kill exp
+                ExperienceGainSerializer.create_experience_gain(
+                    ExperienceEventKeys.FLASK_ON_EVENT_ID,
+                    raider.id,
+                    raid_id=self.raid.id,
+                    timestamp=tokens.get("enounter_end_timestamp")+1,
+                    tokens=tokens,
+                )
+                ExperienceGainSerializer.create_experience_gain(
+                    ExperienceEventKeys.FOOD_ON_EVENT_ID,
+                    raider.id,
+                    raid_id=self.raid.id,
+                    timestamp=tokens.get("enounter_end_timestamp")+2,
+                    tokens=tokens,
+                )
+
             if len(participating_encounters) >= number_of_encounters:
                 complete_raid_tokens = {
                     "zone": self.raid.zone,
@@ -131,88 +146,6 @@ class GenerateExperienceGainsForRaid:
                     timestamp=self.raid_end_timestamp,
                     tokens=complete_raid_tokens,
                 )
-
-    def flask_and_consumes_raid_experience(self):
-        logging.info(f"Calculating consumes GXP for {self.logsCode}...")
-
-        consumes_report = IronforgeAnalyzerInterface.get_consumes_for_report(
-            self.logsCode
-        )
-
-        # build encounter look up map of kills
-        fights = consumes_report.get("fights")
-        encounter_by_fight_id = {}
-        for fight in fights:
-            if (
-                fight.get("kill") and fight.get("name") != "Overall" and fight.get("name") not in self.consumes_exception_encounters
-            ):  # only care about kills
-                result = [
-                    fs for fs in fight.get("fights") if fs.get("kill")
-                ]  # don't care about the attempts
-                result = result[0]
-                if len(result):
-                    name = result.get("name")
-                    id = result.get("id")
-                    encounter_by_fight_id[id] = {
-                        "name": name,
-                        "timestamp": self.raid.timestamp + result.get("end"),
-                    }
-
-        # check if raider has flasks and consumes for each kill
-        consumes_data = consumes_report.get("data")
-        for consumes in consumes_data:
-            encounter = encounter_by_fight_id.get(consumes.get("fight"))
-            if encounter:  # only for fight ids we want want from above
-                for data in consumes.get("data"):
-                    raider_name = data.get("actor").get("name")
-                    raider = RaiderUtils.get_raider_for_name(raider_name)
-                    food = len(data.get("buffs").get("food"))
-                    flask = len(data.get("buffs").get("flask"))
-
-                    tokens = {
-                        "encounter": encounter.get(
-                            "name"
-                        )  # Ironforge Analyzer uses different encounter names :(
-                    }
-
-                    flask_timestamp = (
-                        encounter.get("timestamp")
-                        + 1  # Offset time a bit for nice history ordering
-                    )
-                    if flask:
-                        ExperienceGainSerializer.create_experience_gain(
-                            ExperienceEventKeys.FLASK_ON_EVENT_ID,
-                            raider.id,
-                            raid_id=self.raid.id,
-                            timestamp=flask_timestamp,
-                            tokens=tokens,
-                        )
-                    else:
-                        ExperienceGainSerializer.create_experience_gain(
-                            ExperienceEventKeys.FLASK_OFF_EVENT_ID,
-                            raider.id,
-                            raid_id=self.raid.id,
-                            timestamp=flask_timestamp,
-                            tokens=tokens,
-                        )
-
-                    food_timestamp = encounter.get("timestamp") + 2
-                    if food:
-                        ExperienceGainSerializer.create_experience_gain(
-                            ExperienceEventKeys.FOOD_ON_EVENT_ID,
-                            raider.id,
-                            raid_id=self.raid.id,
-                            timestamp=food_timestamp,
-                            tokens=tokens,
-                        )
-                    else:
-                        ExperienceGainSerializer.create_experience_gain(
-                            ExperienceEventKeys.FOOD_OFF_EVENT_ID,
-                            raider.id,
-                            raid_id=self.raid.id,
-                            timestamp=food_timestamp,
-                            tokens=tokens,
-                        )
 
     def sign_ups_raid_experience(self):
         logging.info(f"Calculating sign up GXP for {self.logsCode}...")
