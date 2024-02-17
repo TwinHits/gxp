@@ -1,5 +1,4 @@
 # GXP
-
 This is the backend REST service for the Guild eXPerience loot system.
 
 This loot system was used by <Gather Your Allies> Faerlina-US for the Wrath of the Lich King classic expansion experience.
@@ -11,6 +10,8 @@ GXP supports using Discord's Raid Helper sign ups, attendance, boss kills, speci
 Every raid, GXP decays so that Raiders can't return at the same rank that they left.
 
 ## Local
+This application is written using django, django-rest-framework, and deployed on AWS App Runner.
+
 To develop locally:
 
 ### Set up:
@@ -24,12 +25,17 @@ To develop locally:
 
 ## Deployment
 https://aws.github.io/copilot-cli/docs/manifest/overview/
+
 The AWS Stack is managed using AWS Copilot.
-Use AWS Copilot CLI for changes
-Deploy using `copilot deploy`. Mine is currently set up in WSL.
+
+Use AWS Copilot CLI for changes.
+
+Deploy using `copilot deploy`.
+
 Make sure docker deskop is running.
 
 ## Adding Dependencies
+
 - Install dependencies using `pipenv install <package>`
 - Do not use a requirements.txt file
 - Tag packages at explicit versions using ==
