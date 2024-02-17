@@ -1,4 +1,4 @@
-#GXP
+# GXP
 
 This is the backend REST service for the Guild eXPerience loot system.
 
