@@ -1,5 +1,13 @@
-# GXP
+#GXP
 This is the backend REST service for the Guild eXPerience loot system.
+
+This loot system was used by <Gather Your Allies> Faerlina-US for the Wrath of the Lich King classic expansion experience.
+
+Members gain GXP during raids, and each lockout rank will be calculated based on the member’s GXP. The intention is that higher ranks get priority on rolling for some gear for Main spec.
+
+GXP supports using Discord's Raid Helper sign ups, attendance, boss kills, specialist roles, food and flask usage, and WarcraftLogs performance to gain GXP.
+
+Every raid, GXP decays so that Raiders can't return at the same rank that they left.
 
 ## Local
 To develop locally:
